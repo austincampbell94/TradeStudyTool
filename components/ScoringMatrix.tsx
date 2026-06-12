@@ -10,6 +10,8 @@ interface ScoringMatrixProps {
   screeningScores: Record<string, Record<string, "Pass" | "Fail">>;
   screening: ScreeningCriterion[];
   onChange: (scores: Record<string, Record<string, number>>) => void;
+  onCandidatesChange?: (candidates: Candidate[]) => void;
+  onTradeCriteriaChange?: (tradeCriteria: TradeCriterion[]) => void;
 }
 
 export default function ScoringMatrix({
@@ -19,6 +21,8 @@ export default function ScoringMatrix({
   screeningScores,
   screening,
   onChange,
+  onCandidatesChange,
+  onTradeCriteriaChange,
 }: ScoringMatrixProps) {
   
   const handleScoreChange = (candId: string, tcId: string, value: number) => {
@@ -64,7 +68,7 @@ export default function ScoringMatrix({
         Scoring Matrix (0–5 Scale)
       </h3>
       <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        Enter raw scores from 0 (Poor) to 5 (Excellent). Weighted scores and totals are calculated instantly.
+        Enter raw scores from 0 (Poor) to 5 (Excellent). You can also edit candidate names/descriptions and criteria weights inline.
       </p>
 
       <div className="table-wrapper">
@@ -72,30 +76,84 @@ export default function ScoringMatrix({
           <thead>
             <tr>
               <th>Candidate</th>
-              {tradeCriteria.map((tc) => (
-                <th key={tc.id} title={tc.desc || tc.name}>
-                  <div>{tc.name}</div>
-                  <small style={{ color: "var(--accent-blue)" }}>
-                    {tc.id} ({tc.weight}%)
-                  </small>
+              {tradeCriteria.map((tc, tcIdx) => (
+                <th key={tc.id} style={{ minWidth: "120px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    <input
+                      type="text"
+                      value={tc.name}
+                      onChange={(e) => {
+                        const newCriteria = [...tradeCriteria];
+                        newCriteria[tcIdx] = { ...tc, name: e.target.value };
+                        onTradeCriteriaChange?.(newCriteria);
+                      }}
+                      className="editable-input"
+                      style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center" }}
+                    />
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.15rem" }}>
+                      <input
+                        type="number"
+                        value={tc.weight}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const newCriteria = [...tradeCriteria];
+                          newCriteria[tcIdx] = { ...tc, weight: isNaN(val) ? 0 : val };
+                          onTradeCriteriaChange?.(newCriteria);
+                        }}
+                        className="editable-input"
+                        style={{ width: "45px", fontSize: "0.75rem", color: "var(--accent-blue)", textAlign: "center", padding: "0" }}
+                        min="0"
+                        max="100"
+                        step="0.5"
+                      />
+                      <small style={{ fontSize: "0.75rem", color: "var(--accent-blue)" }}>%</small>
+                    </div>
+                  </div>
                 </th>
               ))}
-              <th style={{ textAlign: "right" }}>Total Score (0-1)</th>
+              <th style={{ textAlign: "right", minWidth: "120px" }}>Total Score (0-1)</th>
             </tr>
           </thead>
           <tbody>
-            {candidates.map((cand) => {
+            {candidates.map((cand, candIdx) => {
               const isExcluded = getOverallScreeningStatus(cand.id) === "Fail";
               const totalScore = calculateRowTotal(cand.id);
 
               return (
                 <tr key={cand.id} style={{ opacity: isExcluded ? 0.65 : 1 }}>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontWeight: 600 }}>{cand.name}</span>
-                      <small style={{ color: "var(--text-muted)" }}>
-                        {cand.id} {isExcluded && <span style={{ color: "var(--accent-red)", fontWeight: "bold" }}>(Screening Fail)</span>}
-                      </small>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                      <input
+                        type="text"
+                        value={cand.name}
+                        onChange={(e) => {
+                          const newCands = [...candidates];
+                          newCands[candIdx] = { ...cand, name: e.target.value };
+                          onCandidatesChange?.(newCands);
+                        }}
+                        className="editable-input"
+                        style={{ fontWeight: 600, fontSize: "0.95rem" }}
+                      />
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>{cand.id}</small>
+                        <input
+                          type="text"
+                          value={cand.desc}
+                          onChange={(e) => {
+                            const newCands = [...candidates];
+                            newCands[candIdx] = { ...cand, desc: e.target.value };
+                            onCandidatesChange?.(newCands);
+                          }}
+                          placeholder="Description"
+                          className="editable-input"
+                          style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
+                        />
+                      </div>
+                      {isExcluded && (
+                        <span style={{ color: "var(--accent-red)", fontWeight: "bold", fontSize: "0.75rem", paddingLeft: "0.4rem" }}>
+                          (Screening Fail)
+                        </span>
+                      )}
                     </div>
                   </td>
                   {tradeCriteria.map((tc) => {

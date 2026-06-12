@@ -477,3 +477,34 @@ body {
 .animate-fade-in {
     animation: fadeInUp 0.4s ease-out forwards;
 }
+
+/* Inline Editable Inputs */
+.editable-input {
+    background: transparent;
+    border: 1px solid transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
+    width: 100%;
+    transition: all 0.15s ease-in-out;
+}
+
+.editable-input:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.editable-input:focus {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: var(--accent-blue);
+    outline: none;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+/* Specific overrides for inputs in table headers */
+th .editable-input {
+    text-align: center;
+}

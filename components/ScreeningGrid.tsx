@@ -8,6 +8,8 @@ interface ScreeningGridProps {
   screening: ScreeningCriterion[];
   screeningScores: Record<string, Record<string, "Pass" | "Fail">>;
   onChange: (scores: Record<string, Record<string, "Pass" | "Fail">>) => void;
+  onCandidatesChange?: (candidates: Candidate[]) => void;
+  onScreeningChange?: (screening: ScreeningCriterion[]) => void;
 }
 
 export default function ScreeningGrid({
@@ -15,6 +17,8 @@ export default function ScreeningGrid({
   screening,
   screeningScores,
   onChange,
+  onCandidatesChange,
+  onScreeningChange,
 }: ScreeningGridProps) {
   
   const handleToggle = (candId: string, screenId: string) => {
@@ -49,7 +53,7 @@ export default function ScreeningGrid({
         Screening Matrix (Pass / Fail)
       </h3>
       <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        Filter candidates before scoring. Candidates failing any <strong>required (Y)</strong> criterion are automatically excluded.
+        Filter candidates before scoring. You can also edit candidate names/descriptions and screening criteria inline.
       </p>
 
       <div className="table-wrapper">
@@ -57,27 +61,75 @@ export default function ScreeningGrid({
           <thead>
             <tr>
               <th>Candidate</th>
-              {screening.map((sc) => (
-                <th key={sc.id} title={sc.desc || sc.name}>
-                  <div>{sc.name}</div>
-                  <small style={{ color: sc.required === "Y" ? "var(--accent-purple)" : "var(--text-muted)" }}>
-                    {sc.id} {sc.required === "Y" ? "(Req)" : "(Opt)"}
-                  </small>
+              {screening.map((sc, scIdx) => (
+                <th key={sc.id} style={{ minWidth: "145px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    <input
+                      type="text"
+                      value={sc.name}
+                      onChange={(e) => {
+                        const newScreening = [...screening];
+                        newScreening[scIdx] = { ...sc, name: e.target.value };
+                        onScreeningChange?.(newScreening);
+                      }}
+                      className="editable-input"
+                      style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center" }}
+                    />
+                    <select
+                      value={sc.required}
+                      onChange={(e) => {
+                        const newScreening = [...screening];
+                        newScreening[scIdx] = { ...sc, required: e.target.value as "Y" | "N" };
+                        onScreeningChange?.(newScreening);
+                      }}
+                      className="editable-input"
+                      style={{ fontSize: "0.75rem", color: sc.required === "Y" ? "var(--accent-purple)" : "var(--text-muted)", textAlign: "center", padding: "0" }}
+                    >
+                      <option value="Y" style={{ background: "var(--bg-primary)" }}>Required (Y)</option>
+                      <option value="N" style={{ background: "var(--bg-primary)" }}>Optional (N)</option>
+                    </select>
+                  </div>
                 </th>
               ))}
-              <th style={{ textAlign: "center" }}>Overall Status</th>
+              <th style={{ textAlign: "center", minWidth: "130px" }}>Overall Status</th>
             </tr>
           </thead>
           <tbody>
-            {candidates.map((cand) => {
+            {candidates.map((cand, candIdx) => {
               const status = getOverallStatus(cand.id);
               const isFailed = status === "Fail";
 
               return (
                 <tr key={cand.id} style={{ opacity: isFailed ? 0.75 : 1 }}>
                   <td>
-                    <div style={{ fontWeight: 600 }}>{cand.name}</div>
-                    <small style={{ color: "var(--text-muted)" }}>{cand.id}</small>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                      <input
+                        type="text"
+                        value={cand.name}
+                        onChange={(e) => {
+                          const newCands = [...candidates];
+                          newCands[candIdx] = { ...cand, name: e.target.value };
+                          onCandidatesChange?.(newCands);
+                        }}
+                        className="editable-input"
+                        style={{ fontWeight: 600, fontSize: "0.95rem" }}
+                      />
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>{cand.id}</small>
+                        <input
+                          type="text"
+                          value={cand.desc}
+                          onChange={(e) => {
+                            const newCands = [...candidates];
+                            newCands[candIdx] = { ...cand, desc: e.target.value };
+                            onCandidatesChange?.(newCands);
+                          }}
+                          placeholder="Description"
+                          className="editable-input"
+                          style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
+                        />
+                      </div>
+                    </div>
                   </td>
                   {screening.map((sc) => {
                     const score = (screeningScores[cand.id] && screeningScores[cand.id][sc.id]) || "Pass";

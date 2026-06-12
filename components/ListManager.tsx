@@ -8,7 +8,9 @@ interface ListManagerProps<T> {
   title: string;
   subtitle: string;
   items: T[];
-  onUpdate: (items: T[]) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, key: string, value: string | number) => void;
 }
 
 export default function ListManager<T extends { id: string; name: string; desc: string }>({
@@ -16,65 +18,12 @@ export default function ListManager<T extends { id: string; name: string; desc: 
   title,
   subtitle,
   items,
-  onUpdate,
+  onAdd,
+  onRemove,
+  onChange,
 }: ListManagerProps<T>) {
   const MIN = 3;
   const MAX = 10;
-
-  const handleAddField = () => {
-    if (items.length >= MAX) return;
-
-    let newItem: T;
-    const nextNum = items.length + 1;
-
-    if (type === "candidates") {
-      newItem = {
-        id: `C-${nextNum}`,
-        name: `Candidate ${nextNum}`,
-        desc: "",
-      } as unknown as T;
-    } else if (type === "screening") {
-      newItem = {
-        id: `SC-${nextNum}`,
-        name: `Screening Criterion ${nextNum}`,
-        desc: "",
-        required: "Y",
-      } as unknown as T;
-    } else {
-      newItem = {
-        id: `TC-${nextNum}`,
-        name: `Trade Criterion ${nextNum}`,
-        desc: "",
-        weight: 0,
-      } as unknown as T;
-    }
-
-    onUpdate([...items, newItem]);
-  };
-
-  const handleRemoveField = (index: number) => {
-    if (items.length <= MIN) return;
-    const newItems = [...items];
-    newItems.splice(index, 1);
-    
-    // Re-index the IDs to be sequential
-    const prefix = type === "candidates" ? "C" : type === "screening" ? "SC" : "TC";
-    const updatedItems = newItems.map((item, idx) => ({
-      ...item,
-      id: `${prefix}-${idx + 1}`,
-    })) as unknown as T[];
-    
-    onUpdate(updatedItems);
-  };
-
-  const handleChangeField = (index: number, key: string, value: string | number) => {
-    const newItems = [...items];
-    newItems[index] = {
-      ...newItems[index],
-      [key]: value,
-    };
-    onUpdate(newItems);
-  };
 
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
@@ -85,7 +34,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
         </div>
         <button
           type="button"
-          onClick={handleAddField}
+          onClick={onAdd}
           disabled={items.length >= MAX}
           className={`btn-primary ${items.length >= MAX ? "btn-disabled" : ""}`}
           style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
@@ -110,7 +59,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                     type="text"
                     placeholder="Name"
                     value={item.name}
-                    onChange={(e) => handleChangeField(index, "name", e.target.value)}
+                    onChange={(e) => onChange(index, "name", e.target.value)}
                     className="form-input"
                   />
                 </div>
@@ -121,7 +70,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                     type="text"
                     placeholder="Short Description"
                     value={item.desc}
-                    onChange={(e) => handleChangeField(index, "desc", e.target.value)}
+                    onChange={(e) => onChange(index, "desc", e.target.value)}
                     className="form-input"
                   />
                 </div>
@@ -131,7 +80,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                   <div style={{ flex: 1 }}>
                     <select
                       value={(item as unknown as ScreeningCriterion).required}
-                      onChange={(e) => handleChangeField(index, "required", e.target.value)}
+                      onChange={(e) => onChange(index, "required", e.target.value)}
                       className="form-input form-select"
                     >
                       <option value="Y">Required (Y)</option>
@@ -149,7 +98,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                       value={(item as unknown as TradeCriterion).weight || ""}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
-                        handleChangeField(index, "weight", isNaN(val) ? 0 : val);
+                        onChange(index, "weight", isNaN(val) ? 0 : val);
                       }}
                       className="form-input"
                       min="0"
@@ -163,7 +112,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
               {/* Remove button */}
               <button
                 type="button"
-                onClick={() => handleRemoveField(index)}
+                onClick={() => onRemove(index)}
                 disabled={items.length <= MIN}
                 className={`btn-danger ${items.length <= MIN ? "btn-disabled" : ""}`}
                 title={items.length <= MIN ? "Minimum limit of 3 items reached" : "Remove item"}

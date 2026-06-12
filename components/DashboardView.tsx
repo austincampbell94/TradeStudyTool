@@ -12,6 +12,8 @@ interface DashboardViewProps {
   recommendation: string;
   onRecommendationChange: (rec: string) => void;
   onWeightsChange: (criteria: TradeCriterion[]) => void;
+  onCandidatesChange?: (candidates: Candidate[]) => void;
+  onTradeCriteriaChange?: (tradeCriteria: TradeCriterion[]) => void;
 }
 
 export default function DashboardView({
@@ -23,6 +25,8 @@ export default function DashboardView({
   recommendation,
   onRecommendationChange,
   onWeightsChange,
+  onCandidatesChange,
+  onTradeCriteriaChange,
 }: DashboardViewProps) {
 
   // Helper to determine screening status
@@ -146,7 +150,7 @@ export default function DashboardView({
             Candidate Rankings
           </h3>
           <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-            Scores calculated out of 1.0 based on criteria scores and relative weights.
+            Scores calculated out of 1.0 based on criteria scores and relative weights. You can edit names/descriptions inline.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -158,21 +162,30 @@ export default function DashboardView({
                 else if (index === scoredPassed.length - 1) colorClass = "var(--text-muted)";
 
                 return (
-                  <div key={cand.id} style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                      <div>
-                        <span style={{ fontWeight: "700", marginRight: "0.5rem" }}>#{index + 1}</span>
-                        <span style={{ fontWeight: "600" }}>{cand.name}</span>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>({cand.id})</span>
+                  <div key={cand.id} style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", flex: 1 }}>
+                        <span style={{ fontWeight: "700", marginRight: "0.25rem" }}>#{index + 1}</span>
+                        <input
+                          type="text"
+                          value={cand.name}
+                          onChange={(e) => {
+                            const newCands = candidates.map(c => c.id === cand.id ? { ...c, name: e.target.value } : c);
+                            onCandidatesChange?.(newCands);
+                          }}
+                          className="editable-input"
+                          style={{ fontWeight: "600", padding: "0.1rem 0.25rem" }}
+                        />
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                       </div>
-                      <div style={{ textAlign: "right" }}>
+                      <div style={{ textAlign: "right", flexShrink: 0, paddingLeft: "1rem" }}>
                         <span style={{ fontWeight: "700", color: colorClass }}>{cand.score.toFixed(3)}</span>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.4rem" }}>({percentage.toFixed(1)}%)</span>
                       </div>
                     </div>
 
                     {/* Progress Bar Container */}
-                    <div style={{ height: "12px", background: "rgba(255, 255, 255, 0.05)", borderRadius: "6px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                    <div style={{ height: "12px", background: "rgba(255, 255, 255, 0.05)", borderRadius: "6px", overflow: "hidden", border: "1px solid var(--border-color)", margin: "0.2rem 0" }}>
                       <div
                         style={{
                           height: "100%",
@@ -183,7 +196,17 @@ export default function DashboardView({
                         }}
                       />
                     </div>
-                    {cand.desc && <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.1rem" }}>{cand.desc}</p>}
+                    <input
+                      type="text"
+                      value={cand.desc}
+                      onChange={(e) => {
+                        const newCands = candidates.map(c => c.id === cand.id ? { ...c, desc: e.target.value } : c);
+                        onCandidatesChange?.(newCands);
+                      }}
+                      placeholder="Description"
+                      className="editable-input"
+                      style={{ fontSize: "0.85rem", color: "var(--text-muted)", padding: "0.1rem 0.25rem" }}
+                    />
                   </div>
                 );
               })
@@ -208,17 +231,27 @@ export default function DashboardView({
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    padding: "0.75rem 1rem",
+                    alignItems: "center",
+                    padding: "0.5rem 1rem",
                     background: "rgba(239, 68, 68, 0.05)",
                     border: "1px solid rgba(239, 68, 68, 0.15)",
                     borderRadius: "8px",
                   }}
                 >
-                  <div>
-                    <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{cand.name}</span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>({cand.id})</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
+                    <input
+                      type="text"
+                      value={cand.name}
+                      onChange={(e) => {
+                        const newCands = candidates.map(c => c.id === cand.id ? { ...c, name: e.target.value } : c);
+                        onCandidatesChange?.(newCands);
+                      }}
+                      className="editable-input"
+                      style={{ fontWeight: 600, color: "var(--text-secondary)" }}
+                    />
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                   </div>
-                  <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                  <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)", flexShrink: 0, paddingLeft: "1rem" }}>
                     Calculated Score: {cand.score.toFixed(3)}
                   </span>
                 </div>
@@ -255,15 +288,42 @@ export default function DashboardView({
           Sensitivity Analysis
         </h3>
         <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-          Drag sliders to tune criteria weights. Other weights adjust proportionally to keep the total at exactly 100%.
+          Drag sliders or edit weights. Other weights adjust proportionally to keep the total at exactly 100%. You can also edit names inline.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {tradeCriteria.map((tc) => (
-            <div key={tc.id} style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", fontWeight: "600" }}>
-                <span>{tc.name} <small style={{ color: "var(--text-muted)" }}>({tc.id})</small></span>
-                <span style={{ color: "var(--accent-indigo)" }}>{tc.weight.toFixed(1)}%</span>
+            <div key={tc.id} style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.9rem", fontWeight: "600", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", flex: 1 }}>
+                  <input
+                    type="text"
+                    value={tc.name}
+                    onChange={(e) => {
+                      const newCriteria = tradeCriteria.map(c => c.id === tc.id ? { ...c, name: e.target.value } : c);
+                      onTradeCriteriaChange?.(newCriteria);
+                    }}
+                    className="editable-input"
+                    style={{ fontWeight: "600", padding: "0.1rem 0.25rem" }}
+                  />
+                  <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>({tc.id})</small>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.1rem", flexShrink: 0 }}>
+                  <input
+                    type="number"
+                    value={tc.weight}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      handleWeightSlider(tc.id, isNaN(val) ? 0 : val);
+                    }}
+                    className="editable-input"
+                    style={{ width: "45px", textAlign: "right", color: "var(--accent-indigo)", padding: "0" }}
+                    min="0"
+                    max="100"
+                    step="0.5"
+                  />
+                  <span style={{ color: "var(--accent-indigo)" }}>%</span>
+                </div>
               </div>
               
               <input
@@ -279,7 +339,17 @@ export default function DashboardView({
                   accentColor: "var(--accent-indigo)",
                 }}
               />
-              {tc.desc && <small style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{tc.desc}</small>}
+              <input
+                type="text"
+                value={tc.desc}
+                onChange={(e) => {
+                  const newCriteria = tradeCriteria.map(c => c.id === tc.id ? { ...c, desc: e.target.value } : c);
+                  onTradeCriteriaChange?.(newCriteria);
+                }}
+                placeholder="Description"
+                className="editable-input"
+                style={{ fontSize: "0.75rem", color: "var(--text-muted)", padding: "0.1rem 0.25rem" }}
+              />
             </div>
           ))}
         </div>

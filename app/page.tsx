@@ -255,6 +255,190 @@ ${recommendation || "No recommendation documented."}
     URL.revokeObjectURL(url);
   };
 
+  // State adjustment helper functions to keep scores & screening results in sync
+
+  // Candidates Handlers
+  const handleAddCandidate = () => {
+    const nextNum = candidates.length + 1;
+    const newCand: Candidate = {
+      id: `C-${nextNum}`,
+      name: `Candidate ${nextNum}`,
+      desc: "",
+    };
+    setCandidates([...candidates, newCand]);
+    setScores(prev => ({
+      ...prev,
+      [newCand.id]: tradeCriteria.reduce((acc, tc) => ({ ...acc, [tc.id]: 3.0 }), {} as Record<string, number>)
+    }));
+    setScreeningScores(prev => ({
+      ...prev,
+      [newCand.id]: screening.reduce((acc, sc) => ({ ...acc, [sc.id]: "Pass" }), {} as Record<string, "Pass" | "Fail">)
+    }));
+  };
+
+  const handleRemoveCandidate = (index: number) => {
+    if (candidates.length <= 3) return;
+    const newCands = [...candidates];
+    newCands.splice(index, 1);
+
+    // Re-index remaining candidates sequentially
+    const updatedCands = newCands.map((c, idx) => ({
+      ...c,
+      id: `C-${idx + 1}`
+    }));
+
+    // Re-map scores & screeningScores
+    const newScores: Record<string, Record<string, number>> = {};
+    const newScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {};
+
+    updatedCands.forEach((cand, idx) => {
+      const oldId = idx < index ? `C-${idx + 1}` : `C-${idx + 2}`;
+      if (scores[oldId]) {
+        newScores[cand.id] = scores[oldId];
+      }
+      if (screeningScores[oldId]) {
+        newScreeningScores[cand.id] = screeningScores[oldId];
+      }
+    });
+
+    setCandidates(updatedCands);
+    setScores(newScores);
+    setScreeningScores(newScreeningScores);
+  };
+
+  const handleChangeCandidate = (index: number, key: string, value: string | number) => {
+    const newCands = [...candidates];
+    newCands[index] = {
+      ...newCands[index],
+      [key]: value as string,
+    };
+    setCandidates(newCands);
+  };
+
+  // Screening Criteria Handlers
+  const handleAddScreening = () => {
+    const nextNum = screening.length + 1;
+    const newSc: ScreeningCriterion = {
+      id: `SC-${nextNum}`,
+      name: `Screening Criterion ${nextNum}`,
+      desc: "",
+      required: "Y",
+    };
+    setScreening([...screening, newSc]);
+    setScreeningScores(prev => {
+      const updated = { ...prev };
+      candidates.forEach(cand => {
+        if (!updated[cand.id]) updated[cand.id] = {};
+        updated[cand.id] = {
+          ...updated[cand.id],
+          [newSc.id]: "Pass"
+        };
+      });
+      return updated;
+    });
+  };
+
+  const handleRemoveScreening = (index: number) => {
+    if (screening.length <= 3) return;
+    const newScreening = [...screening];
+    newScreening.splice(index, 1);
+
+    // Re-index remaining screening criteria
+    const updatedScreening = newScreening.map((sc, idx) => ({
+      ...sc,
+      id: `SC-${idx + 1}`
+    }));
+
+    const newScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {};
+    
+    candidates.forEach(cand => {
+      const candScores = screeningScores[cand.id] || {};
+      const newCandScores: Record<string, "Pass" | "Fail"> = {};
+      
+      updatedScreening.forEach((sc, idx) => {
+        const oldId = idx < index ? `SC-${idx + 1}` : `SC-${idx + 2}`;
+        if (candScores[oldId] !== undefined) {
+          newCandScores[sc.id] = candScores[oldId];
+        }
+      });
+      newScreeningScores[cand.id] = newCandScores;
+    });
+
+    setScreening(updatedScreening);
+    setScreeningScores(newScreeningScores);
+  };
+
+  const handleChangeScreening = (index: number, key: string, value: string | number) => {
+    const newScreening = [...screening];
+    newScreening[index] = {
+      ...newScreening[index],
+      [key]: value as "Y" | "N",
+    };
+    setScreening(newScreening);
+  };
+
+  // Trade Criteria Handlers
+  const handleAddTradeCriterion = () => {
+    const nextNum = tradeCriteria.length + 1;
+    const newTc: TradeCriterion = {
+      id: `TC-${nextNum}`,
+      name: `Trade Criterion ${nextNum}`,
+      desc: "",
+      weight: 0,
+    };
+    setTradeCriteria([...tradeCriteria, newTc]);
+    setScores(prev => {
+      const updated = { ...prev };
+      candidates.forEach(cand => {
+        if (!updated[cand.id]) updated[cand.id] = {};
+        updated[cand.id] = {
+          ...updated[cand.id],
+          [newTc.id]: 3.0
+        };
+      });
+      return updated;
+    });
+  };
+
+  const handleRemoveTradeCriterion = (index: number) => {
+    if (tradeCriteria.length <= 3) return;
+    const newTradeCriteria = [...tradeCriteria];
+    newTradeCriteria.splice(index, 1);
+
+    // Re-index remaining trade criteria
+    const updatedTradeCriteria = newTradeCriteria.map((tc, idx) => ({
+      ...tc,
+      id: `TC-${idx + 1}`
+    }));
+
+    const newScores: Record<string, Record<string, number>> = {};
+    
+    candidates.forEach(cand => {
+      const candScores = scores[cand.id] || {};
+      const newCandScores: Record<string, number> = {};
+      
+      updatedTradeCriteria.forEach((tc, idx) => {
+        const oldId = idx < index ? `TC-${idx + 1}` : `TC-${idx + 2}`;
+        if (candScores[oldId] !== undefined) {
+          newCandScores[tc.id] = candScores[oldId];
+        }
+      });
+      newScores[cand.id] = newCandScores;
+    });
+
+    setTradeCriteria(updatedTradeCriteria);
+    setScores(newScores);
+  };
+
+  const handleChangeTradeCriterion = (index: number, key: string, value: string | number) => {
+    const newTradeCriteria = [...tradeCriteria];
+    newTradeCriteria[index] = {
+      ...newTradeCriteria[index],
+      [key]: value,
+    } as TradeCriterion;
+    setTradeCriteria(newTradeCriteria);
+  };
+
   return (
     <main className="app-container">
       {/* App Header */}
@@ -301,7 +485,7 @@ ${recommendation || "No recommendation documented."}
         </div>
       </header>
 
-      {/* Quick Action Dashboard Toolbar */}
+      {/* Quick Action Dashboard Toolbar with Dynamic Inline-Editable Metadata */}
       <div
         className="glass-panel animate-fade-in"
         style={{
@@ -314,11 +498,54 @@ ${recommendation || "No recommendation documented."}
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div>
-            <h1 style={{ fontSize: "1.1rem", fontWeight: 700 }}>{meta.project || "Unnamed Study"}</h1>
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              Lead: {meta.lead || "N/A"} | Date: {meta.date || "N/A"} | Version: {meta.version}
-            </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1.1rem" }}>📋</span>
+              <input
+                type="text"
+                value={meta.project}
+                onChange={(e) => setMeta({ ...meta, project: e.target.value })}
+                placeholder="Project Name"
+                className="editable-input"
+                style={{ fontSize: "1.1rem", fontWeight: 700, padding: "0.1rem 0.3rem", width: "250px" }}
+              />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.8rem", color: "var(--text-muted)", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <span>Lead:</span>
+                <input
+                  type="text"
+                  value={meta.lead}
+                  onChange={(e) => setMeta({ ...meta, lead: e.target.value })}
+                  placeholder="Lead Analyst"
+                  className="editable-input"
+                  style={{ fontSize: "0.8rem", color: "var(--text-secondary)", width: "100px", padding: "0 0.2rem" }}
+                />
+              </div>
+              <span>|</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <span>Date:</span>
+                <input
+                  type="date"
+                  value={meta.date}
+                  onChange={(e) => setMeta({ ...meta, date: e.target.value })}
+                  className="editable-input"
+                  style={{ fontSize: "0.8rem", color: "var(--text-secondary)", width: "125px", padding: "0 0.2rem" }}
+                />
+              </div>
+              <span>|</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <span>Ver:</span>
+                <input
+                  type="text"
+                  value={meta.version}
+                  onChange={(e) => setMeta({ ...meta, version: e.target.value })}
+                  placeholder="1.0"
+                  className="editable-input"
+                  style={{ fontSize: "0.8rem", color: "var(--text-secondary)", width: "50px", padding: "0 0.2rem" }}
+                />
+              </div>
+            </div>
           </div>
           {!isWeightValid && (
             <div
@@ -329,6 +556,7 @@ ${recommendation || "No recommendation documented."}
                 borderRadius: "4px",
                 fontSize: "0.75rem",
                 fontWeight: "bold",
+                alignSelf: "center"
               }}
             >
               Weights sum to {weightSum}% (must be 100%)
@@ -373,7 +601,9 @@ ${recommendation || "No recommendation documented."}
             title="Candidates (3 to 10)"
             subtitle="The options, designs, systems, or providers being evaluated."
             items={candidates}
-            onUpdate={setCandidates}
+            onAdd={handleAddCandidate}
+            onRemove={handleRemoveCandidate}
+            onChange={handleChangeCandidate}
           />
           
           <ListManager
@@ -381,7 +611,9 @@ ${recommendation || "No recommendation documented."}
             title="Screening Criteria (3 to 10)"
             subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
             items={screening}
-            onUpdate={setScreening}
+            onAdd={handleAddScreening}
+            onRemove={handleRemoveScreening}
+            onChange={handleChangeScreening}
           />
           
           <ListManager
@@ -389,7 +621,9 @@ ${recommendation || "No recommendation documented."}
             title="Trade Criteria (3 to 10)"
             subtitle="Scored criteria with weights summing to 100%. Adjust weights here or on Step 3."
             items={tradeCriteria}
-            onUpdate={setTradeCriteria}
+            onAdd={handleAddTradeCriterion}
+            onRemove={handleRemoveTradeCriterion}
+            onChange={handleChangeTradeCriterion}
           />
         </div>
       )}
@@ -401,6 +635,8 @@ ${recommendation || "No recommendation documented."}
             screening={screening}
             screeningScores={screeningScores}
             onChange={setScreeningScores}
+            onCandidatesChange={setCandidates}
+            onScreeningChange={setScreening}
           />
           
           <ScoringMatrix
@@ -410,6 +646,8 @@ ${recommendation || "No recommendation documented."}
             screeningScores={screeningScores}
             screening={screening}
             onChange={setScores}
+            onCandidatesChange={setCandidates}
+            onTradeCriteriaChange={setTradeCriteria}
           />
         </div>
       )}
@@ -424,6 +662,8 @@ ${recommendation || "No recommendation documented."}
           recommendation={recommendation}
           onRecommendationChange={setRecommendation}
           onWeightsChange={setTradeCriteria}
+          onCandidatesChange={setCandidates}
+          onTradeCriteriaChange={setTradeCriteria}
         />
       )}
     </main>
