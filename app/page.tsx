@@ -931,7 +931,7 @@ ${recommendation || "No recommendation documented."}
               className="btn-primary"
               style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
             >
-              📊 Generate Dashboard & Sensitivity Analysis (Proceed to Step 3)
+              📊 Generate Dashboard (Proceed to Step 3)
             </button>
           </div>
         </div>
@@ -946,9 +946,7 @@ ${recommendation || "No recommendation documented."}
           screening={screening}
           recommendation={recommendation}
           onRecommendationChange={setRecommendation}
-          onWeightsChange={setTradeCriteria}
           onCandidatesChange={setCandidates}
-          onTradeCriteriaChange={setTradeCriteria}
         />
       )}
     </main>

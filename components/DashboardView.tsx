@@ -11,9 +11,7 @@ interface DashboardViewProps {
   screening: ScreeningCriterion[];
   recommendation: string;
   onRecommendationChange: (rec: string) => void;
-  onWeightsChange: (criteria: TradeCriterion[]) => void;
   onCandidatesChange?: (candidates: Candidate[]) => void;
-  onTradeCriteriaChange?: (tradeCriteria: TradeCriterion[]) => void;
 }
 
 export default function DashboardView({
@@ -24,9 +22,7 @@ export default function DashboardView({
   screening,
   recommendation,
   onRecommendationChange,
-  onWeightsChange,
   onCandidatesChange,
-  onTradeCriteriaChange,
 }: DashboardViewProps) {
 
   // Helper to determine screening status
@@ -86,63 +82,10 @@ export default function DashboardView({
     }
   }, [scoredPassed, failedCandidates, recommendation, onRecommendationChange]);
 
-  // Proportional weight adjustment algorithm to ensure total weight always sums to 100%
-  const handleWeightSlider = (tcId: string, newWeight: number) => {
-    const targetIdx = tradeCriteria.findIndex((tc) => tc.id === tcId);
-    if (targetIdx === -1) return;
 
-    const updatedCriteria = [...tradeCriteria];
-    
-    // Clamp the new weight between 0 and 100
-    const clampedNewWeight = Math.max(0, Math.min(100, newWeight));
-    updatedCriteria[targetIdx] = {
-      ...updatedCriteria[targetIdx],
-      weight: clampedNewWeight,
-    };
-
-    // Calculate sum of other weights
-    const otherCriteriaCount = updatedCriteria.length - 1;
-    if (otherCriteriaCount <= 0) return;
-
-    const sumOfOthersOld = updatedCriteria.reduce((sum, tc, idx) => {
-      return idx === targetIdx ? sum : sum + tc.weight;
-    }, 0);
-
-    const remainingToDistribute = 100 - clampedNewWeight;
-
-    if (sumOfOthersOld > 0) {
-      // Proportional redistribution
-      updatedCriteria.forEach((tc, idx) => {
-        if (idx !== targetIdx) {
-          const proportion = tc.weight / sumOfOthersOld;
-          tc.weight = Math.round(proportion * remainingToDistribute * 10) / 10;
-        }
-      });
-    } else {
-      // Equal redistribution if others were all zero
-      updatedCriteria.forEach((tc, idx) => {
-        if (idx !== targetIdx) {
-          tc.weight = Math.round((remainingToDistribute / otherCriteriaCount) * 10) / 10;
-        }
-      });
-    }
-
-    // Fix floating point rounding errors to ensure exact sum of 100%
-    const currentSum = updatedCriteria.reduce((s, tc) => s + tc.weight, 0);
-    const diff = 100 - currentSum;
-    if (Math.abs(diff) > 0.01) {
-      // Find the first other item to adjust
-      const adjustIdx = targetIdx === 0 ? 1 : 0;
-      updatedCriteria[adjustIdx].weight = Math.round((updatedCriteria[adjustIdx].weight + diff) * 10) / 10;
-    }
-
-    onWeightsChange(updatedCriteria);
-  };
 
   return (
-    <div className="layout-split animate-fade-in">
-      {/* Left Column: Rankings and Details */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
         
         {/* Active Candidates Rankings */}
         <div className="glass-panel" style={{ padding: "1.75rem" }}>
@@ -280,89 +223,6 @@ export default function DashboardView({
             placeholder="Document recommendations, trade study caveats, and next steps..."
           />
         </div>
-      </div>
-
-      {/* Right Column: Sensitivity Weight Adjustment Sliders */}
-      <div className="glass-panel" style={{ padding: "1.75rem", alignSelf: "start" }}>
-        <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-          Sensitivity Analysis
-        </h3>
-        <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-          Drag sliders or edit weights. Other weights adjust proportionally to keep the total at exactly 100%. You can also edit names inline.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          {tradeCriteria.map((tc) => (
-            <div key={tc.id} style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.9rem", fontWeight: "600", gap: "0.5rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", flex: 1 }}>
-                  <input
-                    type="text"
-                    value={tc.name}
-                    onChange={(e) => {
-                      const newCriteria = tradeCriteria.map(c => c.id === tc.id ? { ...c, name: e.target.value } : c);
-                      onTradeCriteriaChange?.(newCriteria);
-                    }}
-                    className="editable-input"
-                    style={{ fontWeight: "600", padding: "0.1rem 0.25rem" }}
-                  />
-                  <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>({tc.id})</small>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.1rem", flexShrink: 0 }}>
-                  <input
-                    type="number"
-                    value={tc.weight}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      handleWeightSlider(tc.id, isNaN(val) ? 0 : val);
-                    }}
-                    className="editable-input"
-                    style={{ width: "45px", textAlign: "right", color: "var(--accent-indigo)", padding: "0" }}
-                    min="0"
-                    max="100"
-                    step="0.5"
-                  />
-                  <span style={{ color: "var(--accent-indigo)" }}>%</span>
-                </div>
-              </div>
-              
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="0.5"
-                value={tc.weight}
-                onChange={(e) => handleWeightSlider(tc.id, parseFloat(e.target.value))}
-                style={{
-                  width: "100%",
-                  cursor: "pointer",
-                  accentColor: "var(--accent-indigo)",
-                }}
-              />
-              <input
-                type="text"
-                value={tc.desc}
-                onChange={(e) => {
-                  const newCriteria = tradeCriteria.map(c => c.id === tc.id ? { ...c, desc: e.target.value } : c);
-                  onTradeCriteriaChange?.(newCriteria);
-                }}
-                placeholder="Description"
-                className="editable-input"
-                style={{ fontSize: "0.75rem", color: "var(--text-muted)", padding: "0.1rem 0.25rem" }}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Visual Confirmation Banner */}
-        <div
-          className="weight-sum-banner valid"
-          style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between" }}
-        >
-          <span>⚖️ Total Weighted Criteria Weight:</span>
-          <strong>100.0%</strong>
-        </div>
-      </div>
     </div>
   );
 }

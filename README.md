@@ -12,7 +12,6 @@ A modern, responsive web application designed to help analysts, project managers
   - **Scoring Matrix**: Evaluate candidates against weighted criteria on a 0–5 scale (with real-time computation of raw and weighted scores). Includes a hoverable guide/tooltip describing the scoring equations.
 - **Interactive Dashboard (Step 3)**:
   - **Animated Rankings**: Real-time progress bars sorting candidates by overall score. Excluded candidates are isolated in a separate diagnostics section.
-  - **Proportional Sensitivity Analysis**: Sliders to adjust criteria weights. Adjusting a slider automatically shifts other weights proportionally to maintain a total sum of exactly **100.0%**, instantly animating rank changes.
   - **Editable Decision Summary**: Auto-generates a text summary based on results, which can be custom-edited.
 - **Data Portability**:
   - **📥 Import JSON**: Reload previous trade studies from `.json` files.
@@ -53,7 +52,7 @@ To enable persistent data storage without requiring a dedicated backend server, 
 │   ├── MetadataSection.tsx  # Input controls for study metadata
 │   ├── ScreeningGrid.tsx    # Interactive Pass/Fail evaluation grid
 │   ├── ScoringMatrix.tsx    # detailed scoring grid (0-5 scale)
-│   └── DashboardView.tsx   # Visual rankings, sensitivity analysis, and rationale
+│   └── DashboardView.tsx   # Visual rankings and decision summary rationale
 ├── types/
 │   └── trade.ts       # Shared TypeScript models and interface structures
 ├── package.json       # Dependencies (Next.js, React, TypeScript, ESLint)

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Trade Study Tool — Interactive Evaluation Dashboard",
-  description: "A modern Web Tool to evaluate alternative designs and configurations using pass/fail screening, weighted scoring, and dynamic sensitivity analysis.",
+  description: "A modern Web Tool to evaluate alternative designs and configurations using pass/fail screening and weighted scoring.",
 };
 
 export default function RootLayout({
