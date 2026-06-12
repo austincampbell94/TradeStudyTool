@@ -175,7 +175,7 @@ export default function ScoringMatrix({
                             style={{ width: "70px", padding: "0.4rem 0.5rem", textAlign: "center" }}
                           />
                           <small style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
-                            w: {weightedVal.toFixed(3)}
+                            w: {weightedVal.toFixed(2)}
                           </small>
                         </div>
                       </td>
@@ -183,7 +183,7 @@ export default function ScoringMatrix({
                   })}
                   <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1.1rem" }}>
                     <div style={{ color: isExcluded ? "var(--text-muted)" : "var(--accent-green)" }}>
-                      {totalScore.toFixed(3)}
+                      {totalScore.toFixed(2)}
                       <div style={{ fontSize: "0.75rem", fontWeight: "normal", color: "var(--text-muted)" }}>
                         {(totalScore * 100).toFixed(1)}%
                       </div>

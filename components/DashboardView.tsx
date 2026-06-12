@@ -69,11 +69,11 @@ export default function DashboardView({
   useEffect(() => {
     if (!recommendation && scoredPassed.length > 0) {
       const best = scoredPassed[0];
-      let gen = `Based on the trade study criteria and weighting, Candidate **${best.name}** is recommended with a total weighted score of **${best.score.toFixed(3)}** (${(best.score * 100).toFixed(1)}%).\n\n`;
+      let gen = `Based on the trade study criteria and weighting, Candidate **${best.name}** is recommended with a total weighted score of **${best.score.toFixed(2)}** (${(best.score * 100).toFixed(1)}%).\n\n`;
       if (scoredPassed.length > 1) {
         const runnerUp = scoredPassed[1];
         const diff = best.score - runnerUp.score;
-        gen += `It outperformed the runner-up, **${runnerUp.name}** (score: ${runnerUp.score.toFixed(3)}), by a margin of ${diff.toFixed(3)}.\n\n`;
+        gen += `It outperformed the runner-up, **${runnerUp.name}** (score: ${runnerUp.score.toFixed(2)}), by a margin of ${diff.toFixed(2)}.\n\n`;
       }
       if (failedCandidates.length > 0) {
         gen += `Note: Candidates ${failedCandidates.map((c) => c.name).join(", ")} were excluded from selection due to failing mandatory screening criteria.`;
@@ -122,7 +122,7 @@ export default function DashboardView({
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, paddingLeft: "1rem" }}>
-                        <span style={{ fontWeight: "700", color: colorClass }}>{cand.score.toFixed(3)}</span>
+                        <span style={{ fontWeight: "700", color: colorClass }}>{cand.score.toFixed(2)}</span>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.4rem" }}>({percentage.toFixed(1)}%)</span>
                       </div>
                     </div>
@@ -195,7 +195,7 @@ export default function DashboardView({
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                   </div>
                   <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)", flexShrink: 0, paddingLeft: "1rem" }}>
-                    Calculated Score: {cand.score.toFixed(3)}
+                    Calculated Score: {cand.score.toFixed(2)}
                   </span>
                 </div>
               ))}

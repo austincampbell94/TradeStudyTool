@@ -339,7 +339,7 @@ export default function Home() {
           tc.name,
           `${tc.weight}%`,
           rawScore.toString(),
-          weightedScore.toFixed(3),
+          weightedScore.toFixed(2),
         ]);
       });
     });
@@ -430,10 +430,10 @@ ${candidates
     const rowList = tradeCriteria.map((tc) => {
       const raw = (scores[cand.id]?.[tc.id] !== undefined) ? scores[cand.id][tc.id] : 3.0;
       const wScore = (raw / 5) * (tc.weight / 100);
-      return `${tc.weight}% | ${raw.toFixed(1)} | ${wScore.toFixed(3)}`;
+      return `${tc.weight}% | ${raw.toFixed(1)} | ${wScore.toFixed(2)}`;
     });
     const total = getScoringTotal(cand.id);
-    return `| ${cand.name} | ${rowList.join(" | ")} | **${total.toFixed(3)}** |`;
+    return `| ${cand.name} | ${rowList.join(" | ")} | **${total.toFixed(2)}** |`;
   })
   .join("\n")}
 
