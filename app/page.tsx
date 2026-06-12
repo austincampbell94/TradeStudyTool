@@ -1278,15 +1278,26 @@ ${recommendation || "No recommendation documented."}
                 borderRadius: "8px",
                 overflow: "hidden",
                 border: "1px solid var(--border-color)",
-                background: "rgba(0,0,0,0.2)"
+                background: "rgba(0,0,0,0.2)",
+                position: "relative",
+                paddingBottom: "56.25%", /* 16:9 Aspect Ratio */
+                height: 0
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="https://media.giphy.com/media/3o7TKMGpxxHOGTdzJC/giphy.gif" 
-                alt="Wreck-It Ralph saying I'm gonna wreck it!" 
-                style={{ width: "100%", height: "auto", display: "block" }}
-              />
+              <iframe 
+                src="https://giphy.com/embed/3oKIPnAiiN8aE3mNRS" 
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  pointerEvents: "none"
+                }}
+                className="giphy-embed" 
+                allowFullScreen
+              ></iframe>
             </div>
             <button 
               onClick={() => setShowWreckItRalphModal(false)}
