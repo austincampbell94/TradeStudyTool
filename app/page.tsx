@@ -93,7 +93,7 @@ const initialScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = 
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"setup" | "scoring">("setup");
-  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState<boolean>(false);
   const [meta, setMeta] = useState<TradeStudyMeta>(initialMeta);
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [screening, setScreening] = useState<ScreeningCriterion[]>(initialScreening);
@@ -107,6 +107,87 @@ export default function Home() {
   const [selectedStudyId, setSelectedStudyId] = useState<string>("");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper: Determine overall screening result per candidate
+  const getOverallScreening = (candId: string) => {
+    const candScores = screeningScores[candId] || {};
+    for (const sc of screening) {
+      if (sc.required === "Y") {
+        const val = candScores[sc.id] || "Pass";
+        if (val === "Fail") return "Fail";
+      }
+    }
+    return "Pass";
+  };
+
+  // Validate weight sum
+  const weightSum = tradeCriteria.reduce((sum, tc) => sum + tc.weight, 0);
+  const isWeightValid = Math.abs(weightSum - 100) < 0.05;
+
+  // Check if setup details are complete in Step 1
+  const isSetupComplete = 
+    meta.project.trim() !== "" &&
+    candidates.length >= 3 &&
+    candidates.every(c => c.name.trim() !== "") &&
+    screening.length >= 3 &&
+    screening.every(s => s.name.trim() !== "") &&
+    tradeCriteria.length >= 3 &&
+    tradeCriteria.every(tc => tc.name.trim() !== "") &&
+    isWeightValid;
+
+  const getSetupErrors = () => {
+    const errors: string[] = [];
+    if (meta.project.trim() === "") {
+      errors.push("Project Title is required.");
+    }
+    if (candidates.length < 3) {
+      errors.push("At least 3 candidates are required.");
+    }
+    if (candidates.some(c => c.name.trim() === "")) {
+      errors.push("All candidates must have a name.");
+    }
+    if (screening.length < 3) {
+      errors.push("At least 3 screening criteria are required.");
+    }
+    if (screening.some(s => s.name.trim() === "")) {
+      errors.push("All screening criteria must have a name.");
+    }
+    if (tradeCriteria.length < 3) {
+      errors.push("At least 3 weighted criteria are required.");
+    }
+    if (tradeCriteria.some(tc => tc.name.trim() === "")) {
+      errors.push("All weighted criteria must have a name.");
+    }
+    if (!isWeightValid) {
+      errors.push(`Weighted criteria weights must sum to exactly 100% (currently ${weightSum.toFixed(2)}%).`);
+    }
+    return errors;
+  };
+
+  // Helper: Check if all Step 2 evaluations are fully filled
+  const isStep2Complete = () => {
+    // Check if screening scores exist for all candidate-criterion pairs
+    for (const cand of candidates) {
+      for (const s of screening) {
+        const val = screeningScores[cand.id]?.[s.id];
+        if (!val) return false;
+      }
+    }
+
+    // Check if scoring scores exist and are valid for all passed candidates
+    for (const cand of candidates) {
+      const isFailed = getOverallScreening(cand.id) === "Fail";
+      if (!isFailed) {
+        for (const tc of tradeCriteria) {
+          const val = scores[cand.id]?.[tc.id];
+          if (val === undefined || val === null || isNaN(val)) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
 
   // Initialize browser localStorage database and load active workspace
   useEffect(() => {
@@ -255,9 +336,7 @@ export default function Home() {
     }
   };
 
-  // Validate weight sum
-  const weightSum = tradeCriteria.reduce((sum, tc) => sum + tc.weight, 0);
-  const isWeightValid = Math.abs(weightSum - 100) < 0.05;
+
 
   // JSON Import handler
   const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,17 +434,7 @@ export default function Home() {
 
   // Export Markdown (Aligned with user's trade-study-template.md)
   const handleExportMarkdown = () => {
-    // Determine overall screening result per candidate
-    const getOverallScreening = (candId: string) => {
-      const candScores = screeningScores[candId] || {};
-      for (const sc of screening) {
-        if (sc.required === "Y") {
-          const val = candScores[sc.id] || "Pass";
-          if (val === "Fail") return "Fail";
-        }
-      }
-      return "Pass";
-    };
+    // getOverallScreening helper is available at the component level
 
     // Calculate total score per candidate
     const getScoringTotal = (candId: string) => {
@@ -638,7 +707,7 @@ ${recommendation || "No recommendation documented."}
   return (
     <main className="app-container">
       {/* App Header */}
-      <header className="app-header">
+      <header className="app-header" style={{ justifyContent: "center" }}>
         <div className="logo-section" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 3V21M12 21H9M12 21H15M12 6L4 9M12 6L20 9" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -655,28 +724,6 @@ ${recommendation || "No recommendation documented."}
           <span style={{ letterSpacing: "-0.01em" }}>
             TradeStudy<span className="logo-text-highlight">Tool</span>
           </span>
-        </div>
-
-        {/* Tab Switcher Navigation */}
-        <div className="nav-links">
-          <button
-            onClick={() => setActiveTab("setup")}
-            className={`nav-btn ${activeTab === "setup" ? "active" : ""}`}
-          >
-            Step 1: Setup
-          </button>
-          <button
-            onClick={() => {
-              if (!isWeightValid) {
-                alert("The weighted criteria must equal 100% before continuing to the next page.");
-                return;
-              }
-              setActiveTab("scoring");
-            }}
-            className={`nav-btn ${activeTab === "scoring" ? "active" : ""}`}
-          >
-            Step 2: Scoring Grid
-          </button>
         </div>
       </header>
 
@@ -835,60 +882,97 @@ ${recommendation || "No recommendation documented."}
             </div>
           </div>
 
-          <MetadataSection meta={meta} onChange={setMeta} />
-          
-          <ListManager
-            type="screening"
-            title="Screening Criteria (3 to 10)"
-            subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
-            items={screening}
-            onAdd={handleAddScreening}
-            onRemove={handleRemoveScreening}
-            onChange={handleChangeScreening}
-          />
+          {/* Step 1 Setup Workspace Panel Box */}
+          <div
+            className="glass-panel animate-fade-in"
+            style={{
+              padding: "2.5rem 2rem",
+              border: "2px solid rgba(255, 255, 255, 0.15)",
+              borderRadius: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "2.5rem",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
+            }}
+          >
+            <div style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "1.25rem" }}>
+              <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                Step 1: Workspace Setup
+              </h2>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "0.4rem 0 0 0" }}>
+                Define project metadata, candidates, screening criteria, and weighted criteria. All fields must be completed.
+              </p>
+            </div>
 
-          <ListManager
-            type="candidates"
-            title="Candidates (3 to 10)"
-            subtitle="The options, designs, systems, or providers being evaluated."
-            items={candidates}
-            onAdd={handleAddCandidate}
-            onRemove={handleRemoveCandidate}
-            onChange={handleChangeCandidate}
-          />
-          
-          <ListManager
-            type="tradeCriteria"
-            title="Weighted Criteria (3 to 10)"
-            subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
-            items={tradeCriteria}
-            onAdd={handleAddTradeCriterion}
-            onRemove={handleRemoveTradeCriterion}
-            onChange={handleChangeTradeCriterion}
-          />
+            <MetadataSection meta={meta} onChange={setMeta} />
+            
+            <ListManager
+              type="screening"
+              title="Screening Criteria (3 to 10)"
+              subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
+              items={screening}
+              onAdd={handleAddScreening}
+              onRemove={handleRemoveScreening}
+              onChange={handleChangeScreening}
+            />
+
+            <ListManager
+              type="candidates"
+              title="Candidates (3 to 10)"
+              subtitle="The options, designs, systems, or providers being evaluated."
+              items={candidates}
+              onAdd={handleAddCandidate}
+              onRemove={handleRemoveCandidate}
+              onChange={handleChangeCandidate}
+            />
+            
+            <ListManager
+              type="tradeCriteria"
+              title="Weighted Criteria (3 to 10)"
+              subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
+              items={tradeCriteria}
+              onAdd={handleAddTradeCriterion}
+              onRemove={handleRemoveTradeCriterion}
+              onChange={handleChangeTradeCriterion}
+            />
+          </div>
 
           {/* Button to proceed to Step 2 */}
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
+            {!isSetupComplete && (
+              <div
+                style={{
+                  background: "rgba(239, 68, 68, 0.1)",
+                  border: "1px solid rgba(239, 68, 68, 0.25)",
+                  color: "var(--accent-red)",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  fontWeight: "bold",
+                  maxWidth: "400px",
+                  textAlign: "center"
+                }}
+              >
+                ⚠️ Incomplete Setup: Please resolve all issues (Project Title, names for all Candidates/Criteria, and exactly 100% weight sum) before proceeding.
+              </div>
+            )}
             <button
               onClick={() => {
-                if (!isWeightValid) {
-                  alert("The weighted criteria must equal 100% before continuing to the next page.");
+                if (!isSetupComplete) {
+                  const errors = getSetupErrors();
+                  alert(`The Step 1 setup is incomplete. Please fix the following errors before continuing:\n\n${errors.map((e, idx) => `${idx + 1}. ${e}`).join("\n")}`);
                   return;
                 }
-                if (candidates.some(c => !c.name) || screening.some(s => !s.name) || tradeCriteria.some(tc => !tc.name)) {
-                  if (!confirm("Some fields are still empty. Do you want to proceed to Step 2 with defaults?")) {
-                    return;
-                  }
-                }
+                setShowResults(false);
                 setActiveTab("scoring");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className={`btn-primary ${!isWeightValid ? "disabled" : ""}`}
+              className={`btn-primary ${!isSetupComplete ? "disabled" : ""}`}
               style={{
                 padding: "1rem 2.5rem",
                 fontSize: "1.05rem",
                 borderRadius: "12px",
-                ...(!isWeightValid ? {
+                ...(!isSetupComplete ? {
                   background: "rgba(255, 255, 255, 0.08)",
                   color: "var(--text-muted)",
                   border: "1px solid var(--border-color)",
@@ -906,6 +990,20 @@ ${recommendation || "No recommendation documented."}
 
       {activeTab === "scoring" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+          {/* Back to Step 1 Button */}
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <button
+              onClick={() => {
+                setActiveTab("setup");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="btn-secondary"
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              ⬅️ Edit Step 1 Setup
+            </button>
+          </div>
+
           <ScreeningGrid
             candidates={candidates}
             screening={screening}
@@ -926,91 +1024,43 @@ ${recommendation || "No recommendation documented."}
             onTradeCriteriaChange={setTradeCriteria}
           />
 
-          {/* Button to open Results Modal */}
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <button
-              onClick={() => {
-                setShowResultsModal(true);
-              }}
-              className="btn-primary"
-              style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
-            >
-              📊 View Rankings & Recommendation Summary
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Results Modal */}
-      {showResultsModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(10, 10, 15, 0.85)",
-            backdropFilter: "blur(12px)",
-            zIndex: 1000,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "2rem",
-          }}
-          onClick={() => setShowResultsModal(false)}
-        >
-          <div
-            className="glass-panel animate-fade-in"
-            style={{
-              width: "100%",
-              maxWidth: "850px",
-              maxHeight: "85vh",
-              overflowY: "auto",
-              position: "relative",
-              padding: "2.5rem 2rem 2rem 2rem",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1.5rem"
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderBottom: "1px solid var(--border-color)",
-                paddingBottom: "1rem",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "1.5rem" }}>📊</span>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-                  Study Results & Rankings
-                </h2>
-              </div>
+          {/* Button to open Results (only rendered if isStep2Complete() is true) */}
+          {isStep2Complete() && (
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
               <button
-                onClick={() => setShowResultsModal(false)}
-                className="btn-secondary"
-                style={{
-                  padding: "0.4rem 0.8rem",
-                  fontSize: "0.85rem",
-                  borderRadius: "8px",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid var(--border-color)",
-                  cursor: "pointer"
+                onClick={() => {
+                  setShowResults(true);
+                  setTimeout(() => {
+                    document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
                 }}
+                className="btn-primary"
+                style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
               >
-                ✕ Close
+                📊 View Rankings & Recommendation Summary
               </button>
             </div>
+          )}
 
-            {/* Modal Content */}
-            <div style={{ flex: 1, paddingRight: "0.5rem" }}>
+          {/* Results Section (rendered inline below Scoring Grid) */}
+          {showResults && (
+            <div id="results-section" style={{ borderTop: "2px solid var(--border-color)", paddingTop: "2rem", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                  📊 Study Results & Rankings
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowResults(false);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="btn-secondary"
+                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem", borderRadius: "8px" }}
+                >
+                  Hide Results
+                </button>
+              </div>
+              
               <DashboardView
                 candidates={candidates}
                 tradeCriteria={tradeCriteria}
@@ -1022,7 +1072,7 @@ ${recommendation || "No recommendation documented."}
                 onCandidatesChange={setCandidates}
               />
             </div>
-          </div>
+          )}
         </div>
       )}
     </main>
