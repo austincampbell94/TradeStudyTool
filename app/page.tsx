@@ -1228,25 +1228,23 @@ ${recommendation || "No recommendation documented."}
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            animation: "fade-in 0.2s ease"
+            animation: "fade-in 0.2s ease",
+            cursor: "pointer"
           }}
+          title="Click anywhere to close"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="glass-panel"
             style={{
-              padding: "2rem",
               borderRadius: "16px",
+              overflow: "hidden",
               border: "2px solid rgba(255, 255, 255, 0.2)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "1.5rem",
-              maxWidth: "450px",
+              maxWidth: "500px",
               width: "90%",
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
               position: "relative",
-              textAlign: "center"
+              display: "flex",
+              justifyContent: "center"
             }}
           >
             <button
@@ -1255,57 +1253,30 @@ ${recommendation || "No recommendation documented."}
                 position: "absolute",
                 top: "12px",
                 right: "12px",
-                background: "none",
+                background: "rgba(0, 0, 0, 0.5)",
                 border: "none",
-                color: "var(--text-muted)",
+                color: "#ffffff",
                 fontSize: "1.2rem",
                 cursor: "pointer",
                 padding: "0.25rem",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                zIndex: 10
               }}
               title="Close"
             >
               ❌
             </button>
-            <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-primary)" }}>
-              I&apos;m gunna wreck it!
-            </h3>
-            <div 
-              style={{
-                width: "100%",
-                borderRadius: "8px",
-                overflow: "hidden",
-                border: "1px solid var(--border-color)",
-                background: "rgba(0,0,0,0.2)",
-                position: "relative",
-                paddingBottom: "56.25%", /* 16:9 Aspect Ratio */
-                height: 0
-              }}
-            >
-              <iframe 
-                src="https://giphy.com/embed/3oKIPnAiiN8aE3mNRS" 
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                  pointerEvents: "none"
-                }}
-                className="giphy-embed" 
-                allowFullScreen
-              ></iframe>
-            </div>
-            <button 
-              onClick={() => setShowWreckItRalphModal(false)}
-              className="btn-danger"
-              style={{ padding: "0.6rem 1.5rem", fontSize: "0.9rem", borderRadius: "8px" }}
-            >
-              Close
-            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/wreck_it_ralph.gif" 
+              alt="Wreck-It Ralph" 
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
           </div>
         </div>
       )}
