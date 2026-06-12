@@ -29,7 +29,7 @@ const DEMO_STUDY = {
   meta: {
     project: "Comms Relay Options",
     sponsor: "Example Project Office",
-    lead: "Jane Doe",
+    lead: "Wreck It Ralph",
     date: "2026-05-15",
     version: "1.0",
   },
@@ -101,6 +101,7 @@ export default function Home() {
   const [scores, setScores] = useState<Record<string, Record<string, number>>>(initialScores);
   const [screeningScores, setScreeningScores] = useState<Record<string, Record<string, "Pass" | "Fail">>>(initialScreeningScores);
   const [recommendation, setRecommendation] = useState<string>("");
+  const [showWreckItRalphModal, setShowWreckItRalphModal] = useState<boolean>(false);
 
   // Database States
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
@@ -209,6 +210,12 @@ export default function Home() {
     } else {
       try {
         studiesList = JSON.parse(stored);
+        // Automatically update the demo study inside database if it contains Jane Doe
+        const demoIndex = studiesList.findIndex(s => s.id === "demo");
+        if (demoIndex !== -1) {
+          studiesList[demoIndex].data = DEMO_STUDY;
+          localStorage.setItem("trade_studies", JSON.stringify(studiesList));
+        }
       } catch {
         studiesList = [];
       }
@@ -223,6 +230,10 @@ export default function Home() {
       if (currentActive) {
         try {
           const parsed = JSON.parse(currentActive);
+          if (parsed.meta && parsed.meta.lead === "Jane Doe") {
+            parsed.meta.lead = "Wreck It Ralph";
+            localStorage.setItem("current_trade_study", JSON.stringify(parsed));
+          }
           setMeta(parsed.meta || initialMeta);
           setCandidates(parsed.candidates || initialCandidates);
           setScreening(parsed.screening || initialScreening);
@@ -810,7 +821,12 @@ ${recommendation || "No recommendation documented."}
     <main className="app-container">
       {/* App Header */}
       <header className="app-header" style={{ justifyContent: "center" }}>
-        <div className="logo-section" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <div 
+          className="logo-section" 
+          onClick={() => setShowWreckItRalphModal(true)} 
+          style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer" }}
+          title="I'm gunna wreck it!"
+        >
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 3V21M12 21H9M12 21H15M12 6L4 9M12 6L20 9" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M4 9C4 13 6 15 6 15M6 15C6 15 8 13 8 9M6 15V19M6 19H5M6 19H7" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1195,6 +1211,93 @@ ${recommendation || "No recommendation documented."}
           </div>
         )}
       </div>
+
+      {/* Wreck It Ralph Modal */}
+      {showWreckItRalphModal && (
+        <div 
+          onClick={() => setShowWreckItRalphModal(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(8px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            animation: "fade-in 0.2s ease"
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="glass-panel"
+            style={{
+              padding: "2rem",
+              borderRadius: "16px",
+              border: "2px solid rgba(255, 255, 255, 0.2)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1.5rem",
+              maxWidth: "450px",
+              width: "90%",
+              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
+              position: "relative",
+              textAlign: "center"
+            }}
+          >
+            <button
+              onClick={() => setShowWreckItRalphModal(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "none",
+                border: "none",
+                color: "var(--text-muted)",
+                fontSize: "1.2rem",
+                cursor: "pointer",
+                padding: "0.25rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+              title="Close"
+            >
+              ❌
+            </button>
+            <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: "bold", color: "var(--text-primary)" }}>
+              I&apos;m gunna wreck it!
+            </h3>
+            <div 
+              style={{
+                width: "100%",
+                borderRadius: "8px",
+                overflow: "hidden",
+                border: "1px solid var(--border-color)",
+                background: "rgba(0,0,0,0.2)"
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="https://media.giphy.com/media/3o7TKMGpxxHOGTdzJC/giphy.gif" 
+                alt="Wreck-It Ralph saying I'm gonna wreck it!" 
+                style={{ width: "100%", height: "auto", display: "block" }}
+              />
+            </div>
+            <button 
+              onClick={() => setShowWreckItRalphModal(false)}
+              className="btn-danger"
+              style={{ padding: "0.6rem 1.5rem", fontSize: "0.9rem", borderRadius: "8px" }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
