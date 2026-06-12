@@ -102,6 +102,39 @@ export default function Home() {
   const [screeningScores, setScreeningScores] = useState<Record<string, Record<string, "Pass" | "Fail">>>(initialScreeningScores);
   const [recommendation, setRecommendation] = useState<string>("");
   const [showWreckItRalphModal, setShowWreckItRalphModal] = useState<boolean>(false);
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(() => {
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem("app_theme") as "light" | "dark" | "system") || "system";
+  });
+
+  // Sync theme to document element and localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("app_theme", theme);
+    
+    const root = document.documentElement;
+    const applyTheme = (t: "light" | "dark" | "system") => {
+      if (t === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        root.setAttribute("data-theme", systemTheme);
+      } else {
+        root.setAttribute("data-theme", t);
+      }
+    };
+
+    applyTheme(theme);
+
+    // Watch for system theme changes if set to system
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemThemeChange = () => {
+      if (theme === "system") {
+        applyTheme("system");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleSystemThemeChange);
+    return () => mediaQuery.removeEventListener("change", handleSystemThemeChange);
+  }, [theme]);
 
   // Database States
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
@@ -936,7 +969,11 @@ ${recommendation || "No recommendation documented."}
   return (
     <main className="app-container">
       {/* App Header */}
-      <header className="app-header" style={{ justifyContent: "center" }}>
+      <header className="app-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Balanced spacer to keep logo centered */}
+        <div style={{ width: "130px" }} aria-hidden="true"></div>
+
+        {/* Logo */}
         <div 
           className="logo-section" 
           onClick={() => setShowWreckItRalphModal(true)} 
@@ -958,6 +995,85 @@ ${recommendation || "No recommendation documented."}
           <span style={{ letterSpacing: "-0.01em" }}>
             TradeStudy<span className="logo-text-highlight">Tool</span>
           </span>
+        </div>
+
+        {/* Theme Selector */}
+        <div 
+          style={{ 
+            display: "flex", 
+            background: "rgba(255, 255, 255, 0.05)", 
+            border: "1px solid var(--border-color)", 
+            borderRadius: "20px", 
+            padding: "2px",
+            gap: "2px",
+            alignItems: "center",
+            width: "130px",
+            justifyContent: "space-between"
+          }}
+        >
+          <button 
+            type="button"
+            onClick={() => setTheme("light")} 
+            style={{ 
+              background: theme === "light" ? "var(--accent-blue)" : "transparent",
+              color: theme === "light" ? "#fff" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              flex: 1
+            }}
+            title="Light Mode"
+          >
+            ☀️
+          </button>
+          <button 
+            type="button"
+            onClick={() => setTheme("dark")} 
+            style={{ 
+              background: theme === "dark" ? "var(--accent-indigo)" : "transparent",
+              color: theme === "dark" ? "#fff" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              flex: 1
+            }}
+            title="Dark Mode"
+          >
+            🌙
+          </button>
+          <button 
+            type="button"
+            onClick={() => setTheme("system")} 
+            style={{ 
+              background: theme === "system" ? "rgba(255, 255, 255, 0.15)" : "transparent",
+              color: theme === "system" ? "var(--text-primary)" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              flex: 1
+            }}
+            title="System Mode"
+          >
+            💻
+          </button>
         </div>
       </header>
 

@@ -555,3 +555,97 @@ th .editable-input {
     opacity: 1;
     transform: translateX(-50%) translateY(-2px);
 }
+
+/* Calendar Picker Indicator Styling for Dark/Light Mode Visibility */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px;
+    filter: invert(1); /* Visible white calendar icon in dark mode */
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light Theme Variables & Styling Overrides */
+[data-theme="light"] {
+    --bg-primary: #f8fafc;
+    --bg-secondary: rgba(255, 255, 255, 0.7);
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.15);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    
+    --accent-blue: #0284c7;
+    --accent-indigo: #4f46e5;
+    --accent-purple: #9333ea;
+    
+    --shadow-main: 0 20px 40px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .app-header {
+    background: rgba(248, 250, 252, 0.85);
+}
+
+[data-theme="light"] .form-input {
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .form-input:focus {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 10px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="light"] .form-select {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+}
+
+[data-theme="light"] .matrix-table th {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .matrix-table tr:hover {
+    background: rgba(0, 0, 0, 0.01);
+}
+
+[data-theme="light"] .editable-input:hover {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .editable-input:focus {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(2, 132, 199, 0.15);
+}
+
+[data-theme="light"] .import-zone {
+    border-color: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.01);
+}
+
+[data-theme="light"] .import-zone:hover {
+    background: rgba(79, 70, 229, 0.03);
+}
+
+/* Light mode calendar picker indicator override (dark icon) */
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0);
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
