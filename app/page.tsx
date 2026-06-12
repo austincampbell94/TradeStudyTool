@@ -92,7 +92,7 @@ const initialScores: Record<string, Record<string, number>> = {};
 const initialScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {};
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"setup" | "scoring">("setup");
+  const [showStep2, setShowStep2] = useState<boolean>(false);
   const [showResults, setShowResults] = useState<boolean>(false);
   const [meta, setMeta] = useState<TradeStudyMeta>(initialMeta);
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
@@ -230,6 +230,56 @@ export default function Home() {
           setScores(parsed.scores || {});
           setScreeningScores(parsed.screeningScores || {});
           setRecommendation(parsed.recommendation || "");
+
+          const d = parsed;
+          if (d.tradeCriteria && d.meta && d.candidates && d.screening) {
+            const loadedWeightSum = d.tradeCriteria.reduce((sum: number, tc: TradeCriterion) => sum + tc.weight, 0);
+            const loadedIsWeightValid = Math.abs(loadedWeightSum - 100) < 0.05;
+            const loadedIsSetupComplete = 
+              d.meta.project.trim() !== "" &&
+              d.candidates.length >= 3 &&
+              d.candidates.every((c: Candidate) => c.name.trim() !== "") &&
+              d.screening.length >= 3 &&
+              d.screening.every((s: ScreeningCriterion) => s.name.trim() !== "") &&
+              d.tradeCriteria.length >= 3 &&
+              d.tradeCriteria.every((tc: TradeCriterion) => tc.name.trim() !== "") &&
+              loadedIsWeightValid;
+
+            if (loadedIsSetupComplete) {
+              setShowStep2(true);
+              
+              let hasAllScores = true;
+              for (const cand of d.candidates) {
+                for (const s of d.screening) {
+                  if (!d.screeningScores?.[cand.id]?.[s.id]) {
+                    hasAllScores = false;
+                    break;
+                  }
+                }
+                if (!hasAllScores) break;
+
+                const isFailed = d.screening.some((sc: ScreeningCriterion) => {
+                  if (sc.required === "Y") {
+                    const val = d.screeningScores?.[cand.id]?.[sc.id] || "Pass";
+                    if (val === "Fail") return true;
+                  }
+                  return false;
+                });
+
+                if (!isFailed) {
+                  for (const tc of d.tradeCriteria) {
+                    const val = d.scores?.[cand.id]?.[tc.id];
+                    if (val === undefined || val === null || isNaN(val)) {
+                      hasAllScores = false;
+                      break;
+                    }
+                  }
+                }
+                if (!hasAllScores) break;
+              }
+              setShowResults(hasAllScores);
+            }
+          }
         } catch (e) {
           console.error("Failed to parse current active study", e);
         }
@@ -266,6 +316,8 @@ export default function Home() {
         setScreeningScores(initialScreeningScores);
         setRecommendation("");
         setSelectedStudyId("");
+        setShowStep2(false);
+        setShowResults(false);
       }
       return;
     }
@@ -283,6 +335,55 @@ export default function Home() {
       setScreeningScores(d.screeningScores || {});
       setRecommendation(d.recommendation || "");
       setSelectedStudyId(id);
+
+      const loadedWeightSum = (d.tradeCriteria || []).reduce((sum: number, tc: TradeCriterion) => sum + tc.weight, 0);
+      const loadedIsWeightValid = Math.abs(loadedWeightSum - 100) < 0.05;
+      const loadedIsSetupComplete = 
+        d.meta.project && d.meta.project.trim() !== "" &&
+        d.candidates && d.candidates.length >= 3 &&
+        d.candidates.every((c: Candidate) => c.name.trim() !== "") &&
+        d.screening && d.screening.length >= 3 &&
+        d.screening.every((s: ScreeningCriterion) => s.name.trim() !== "") &&
+        d.tradeCriteria && d.tradeCriteria.length >= 3 &&
+        d.tradeCriteria.every((tc: TradeCriterion) => tc.name.trim() !== "") &&
+        loadedIsWeightValid;
+
+      if (loadedIsSetupComplete) {
+        setShowStep2(true);
+        let hasAllScores = true;
+        for (const cand of d.candidates || []) {
+          for (const s of d.screening || []) {
+            if (!d.screeningScores?.[cand.id]?.[s.id]) {
+              hasAllScores = false;
+              break;
+            }
+          }
+          if (!hasAllScores) break;
+
+          const isFailed = (d.screening || []).some((sc: ScreeningCriterion) => {
+            if (sc.required === "Y") {
+              const val = d.screeningScores?.[cand.id]?.[sc.id] || "Pass";
+              if (val === "Fail") return true;
+            }
+            return false;
+          });
+
+          if (!isFailed) {
+            for (const tc of d.tradeCriteria || []) {
+              const val = d.scores?.[cand.id]?.[tc.id];
+              if (val === undefined || val === null || isNaN(val)) {
+                hasAllScores = false;
+                break;
+              }
+            }
+          }
+          if (!hasAllScores) break;
+        }
+        setShowResults(hasAllScores);
+      } else {
+        setShowStep2(false);
+        setShowResults(false);
+      }
     }
   };
 
@@ -367,7 +468,8 @@ export default function Home() {
         setScores(data.scores || {});
         setScreeningScores(data.screeningScores || {});
         setRecommendation(data.recommendation || "");
-        setActiveTab("scoring");
+        setShowStep2(true);
+        setShowResults(true);
       } catch {
         alert("Failed to parse JSON file.");
       }
@@ -834,247 +936,265 @@ ${recommendation || "No recommendation documented."}
         </div>
       </div>
 
-      {/* Main Tab Panels */}
-      {activeTab === "setup" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Browser Local Database Panel */}
-          <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-              <div>
-                <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>Study Database</h3>
-                <p className="panel-subtitle" style={{ fontSize: "0.85rem" }}>Save your work locally in the browser or load templates.</p>
-              </div>
-              <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
-                <select
-                  value={selectedStudyId}
-                  onChange={(e) => handleLoadStudy(e.target.value)}
-                  className="form-input form-select"
-                  style={{ width: "220px", padding: "0.5rem 2rem 0.5rem 1rem", fontSize: "0.85rem" }}
-                >
-                  <option value="">-- Load Saved Study --</option>
-                  <option value="new">🆕 Create New Blank Study</option>
-                  {savedStudies.map((study) => (
-                    <option key={study.id} value={study.id}>
-                      📁 {study.name}
-                    </option>
-                  ))}
-                </select>
-                
+      {/* Setup Workspace Panels */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+        {/* Browser Local Database Panel */}
+        <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>Study Database</h3>
+              <p className="panel-subtitle" style={{ fontSize: "0.85rem" }}>Save your work locally in the browser or load templates.</p>
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+              <select
+                value={selectedStudyId}
+                onChange={(e) => handleLoadStudy(e.target.value)}
+                className="form-input form-select"
+                style={{ width: "220px", padding: "0.5rem 2rem 0.5rem 1rem", fontSize: "0.85rem" }}
+              >
+                <option value="">-- Load Saved Study --</option>
+                <option value="new">🆕 Create New Blank Study</option>
+                {savedStudies.map((study) => (
+                  <option key={study.id} value={study.id}>
+                    📁 {study.name}
+                  </option>
+                ))}
+              </select>
+              
+              <button
+                onClick={handleSaveStudyToDb}
+                className="btn-primary"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+              >
+                💾 Save Current Study
+              </button>
+              
+              {selectedStudyId && selectedStudyId !== "demo" && (
                 <button
-                  onClick={handleSaveStudyToDb}
-                  className="btn-primary"
-                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                  onClick={() => handleDeleteStudyFromDb(selectedStudyId)}
+                  className="btn-danger"
+                  style={{ padding: "0.5rem", borderRadius: "10px" }}
+                  title="Delete study from database"
                 >
-                  💾 Save Current Study
+                  🗑️
                 </button>
-                
-                {selectedStudyId && selectedStudyId !== "demo" && (
-                  <button
-                    onClick={() => handleDeleteStudyFromDb(selectedStudyId)}
-                    className="btn-danger"
-                    style={{ padding: "0.5rem", borderRadius: "10px" }}
-                    title="Delete study from database"
-                  >
-                    🗑️
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Step 1 Setup Workspace Panel Box */}
-          <div
-            className="glass-panel animate-fade-in"
+        {/* Step 1 Setup Workspace Panel Box */}
+        <div
+          className="glass-panel animate-fade-in"
+          style={{
+            padding: "2.5rem 2rem",
+            border: "2px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "2.5rem",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
+          }}
+        >
+          <div style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "1.25rem" }}>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+              Step 1: Workspace Setup
+            </h2>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "0.4rem 0 0 0" }}>
+              Define project metadata, candidates, screening criteria, and weighted criteria. All fields must be completed.
+            </p>
+          </div>
+
+          <MetadataSection meta={meta} onChange={setMeta} />
+          
+          <ListManager
+            type="screening"
+            title="Screening Criteria (3 to 10)"
+            subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
+            items={screening}
+            onAdd={handleAddScreening}
+            onRemove={handleRemoveScreening}
+            onChange={handleChangeScreening}
+          />
+
+          <ListManager
+            type="candidates"
+            title="Candidates (3 to 10)"
+            subtitle="The options, designs, systems, or providers being evaluated."
+            items={candidates}
+            onAdd={handleAddCandidate}
+            onRemove={handleRemoveCandidate}
+            onChange={handleChangeCandidate}
+          />
+          
+          <ListManager
+            type="tradeCriteria"
+            title="Weighted Criteria (3 to 10)"
+            subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
+            items={tradeCriteria}
+            onAdd={handleAddTradeCriterion}
+            onRemove={handleRemoveTradeCriterion}
+            onChange={handleChangeTradeCriterion}
+          />
+        </div>
+
+        {/* Button to proceed to Step 2 */}
+        <div id="step-2-trigger-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
+          {!isSetupComplete && (
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.25)",
+                color: "var(--accent-red)",
+                padding: "0.5rem 1rem",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                fontWeight: "bold",
+                maxWidth: "400px",
+                textAlign: "center"
+              }}
+            >
+              ⚠️ Incomplete Setup: Please resolve all issues (Project Title, names for all Candidates/Criteria, and exactly 100% weight sum) before proceeding.
+            </div>
+          )}
+          <button
+            onClick={() => {
+              if (!isSetupComplete) {
+                const errors = getSetupErrors();
+                alert(`The Step 1 setup is incomplete. Please fix the following errors before continuing:\n\n${errors.map((e, idx) => `${idx + 1}. ${e}`).join("\n")}`);
+                return;
+              }
+              setShowStep2(true);
+              setTimeout(() => {
+                document.getElementById("step-2-trigger-container")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            }}
+            className={`btn-primary ${!isSetupComplete ? "disabled" : ""}`}
             style={{
-              padding: "2.5rem 2rem",
-              border: "2px solid rgba(255, 255, 255, 0.15)",
-              borderRadius: "16px",
+              padding: "1rem 2.5rem",
+              fontSize: "1.05rem",
+              borderRadius: "12px",
+              ...(!isSetupComplete ? {
+                background: "rgba(255, 255, 255, 0.08)",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border-color)",
+                cursor: "not-allowed",
+                boxShadow: "none",
+                transform: "none",
+              } : {})
+            }}
+          >
+            🚀 Generate Scoring Grid (Proceed to Step 2)
+          </button>
+        </div>
+
+        {/* Step 2 Section (Evaluation & Scoring Grid) */}
+        {showStep2 && (
+          <div
+            id="step-2-section"
+            style={{
               display: "flex",
               flexDirection: "column",
-              gap: "2.5rem",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
+              gap: "2rem",
+              borderTop: "2px solid var(--border-color)",
+              paddingTop: "2rem",
+              marginTop: "2rem"
             }}
           >
             <div style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "1.25rem" }}>
               <h2 style={{ fontSize: "1.5rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-                Step 1: Workspace Setup
+                Step 2: Evaluation & Scoring
               </h2>
               <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "0.4rem 0 0 0" }}>
-                Define project metadata, candidates, screening criteria, and weighted criteria. All fields must be completed.
+                Filter candidates using pass/fail screening criteria and rate them against weighted trade criteria.
               </p>
             </div>
 
-            <MetadataSection meta={meta} onChange={setMeta} />
-            
-            <ListManager
-              type="screening"
-              title="Screening Criteria (3 to 10)"
-              subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
-              items={screening}
-              onAdd={handleAddScreening}
-              onRemove={handleRemoveScreening}
-              onChange={handleChangeScreening}
-            />
-
-            <ListManager
-              type="candidates"
-              title="Candidates (3 to 10)"
-              subtitle="The options, designs, systems, or providers being evaluated."
-              items={candidates}
-              onAdd={handleAddCandidate}
-              onRemove={handleRemoveCandidate}
-              onChange={handleChangeCandidate}
+            <ScreeningGrid
+              candidates={candidates}
+              screening={screening}
+              screeningScores={screeningScores}
+              onChange={setScreeningScores}
+              onCandidatesChange={setCandidates}
+              onScreeningChange={setScreening}
             />
             
-            <ListManager
-              type="tradeCriteria"
-              title="Weighted Criteria (3 to 10)"
-              subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
-              items={tradeCriteria}
-              onAdd={handleAddTradeCriterion}
-              onRemove={handleRemoveTradeCriterion}
-              onChange={handleChangeTradeCriterion}
+            <ScoringMatrix
+              candidates={candidates}
+              tradeCriteria={tradeCriteria}
+              scores={scores}
+              screeningScores={screeningScores}
+              screening={screening}
+              onChange={setScores}
+              onCandidatesChange={setCandidates}
+              onTradeCriteriaChange={setTradeCriteria}
             />
-          </div>
 
-          {/* Button to proceed to Step 2 */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", marginTop: "1rem" }}>
-            {!isSetupComplete && (
-              <div
-                style={{
-                  background: "rgba(239, 68, 68, 0.1)",
-                  border: "1px solid rgba(239, 68, 68, 0.25)",
-                  color: "var(--accent-red)",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "8px",
-                  fontSize: "0.85rem",
-                  fontWeight: "bold",
-                  maxWidth: "400px",
-                  textAlign: "center"
-                }}
-              >
-                ⚠️ Incomplete Setup: Please resolve all issues (Project Title, names for all Candidates/Criteria, and exactly 100% weight sum) before proceeding.
-              </div>
-            )}
-            <button
-              onClick={() => {
-                if (!isSetupComplete) {
-                  const errors = getSetupErrors();
-                  alert(`The Step 1 setup is incomplete. Please fix the following errors before continuing:\n\n${errors.map((e, idx) => `${idx + 1}. ${e}`).join("\n")}`);
-                  return;
-                }
-                setShowResults(false);
-                setActiveTab("scoring");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className={`btn-primary ${!isSetupComplete ? "disabled" : ""}`}
-              style={{
-                padding: "1rem 2.5rem",
-                fontSize: "1.05rem",
-                borderRadius: "12px",
-                ...(!isSetupComplete ? {
-                  background: "rgba(255, 255, 255, 0.08)",
-                  color: "var(--text-muted)",
-                  border: "1px solid var(--border-color)",
-                  cursor: "not-allowed",
-                  boxShadow: "none",
-                  transform: "none",
-                } : {})
-              }}
-            >
-              🚀 Generate Scoring Grid (Proceed to Step 2)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "scoring" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {/* Back to Step 1 Button */}
-          <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <button
-              onClick={() => {
-                setActiveTab("setup");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="btn-secondary"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-            >
-              ⬅️ Edit Step 1 Setup
-            </button>
-          </div>
-
-          <ScreeningGrid
-            candidates={candidates}
-            screening={screening}
-            screeningScores={screeningScores}
-            onChange={setScreeningScores}
-            onCandidatesChange={setCandidates}
-            onScreeningChange={setScreening}
-          />
-          
-          <ScoringMatrix
-            candidates={candidates}
-            tradeCriteria={tradeCriteria}
-            scores={scores}
-            screeningScores={screeningScores}
-            screening={screening}
-            onChange={setScores}
-            onCandidatesChange={setCandidates}
-            onTradeCriteriaChange={setTradeCriteria}
-          />
-
-          {/* Button to open Results (only rendered if isStep2Complete() is true) */}
-          {isStep2Complete() && (
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-              <button
-                onClick={() => {
-                  setShowResults(true);
-                  setTimeout(() => {
-                    document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
-                  }, 100);
-                }}
-                className="btn-primary"
-                style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
-              >
-                📊 View Rankings & Recommendation Summary
-              </button>
-            </div>
-          )}
-
-          {/* Results Section (rendered inline below Scoring Grid) */}
-          {showResults && (
-            <div id="results-section" style={{ borderTop: "2px solid var(--border-color)", paddingTop: "2rem", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-                  📊 Study Results & Rankings
-                </h2>
+            {/* Button to open Results (only rendered if isStep2Complete() is true) */}
+            {isStep2Complete() && (
+              <div id="results-trigger-container" style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
                 <button
                   onClick={() => {
-                    setShowResults(false);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    setShowResults(true);
+                    setTimeout(() => {
+                      document.getElementById("results-trigger-container")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 100);
                   }}
-                  className="btn-secondary"
-                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem", borderRadius: "8px" }}
+                  className="btn-primary"
+                  style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
                 >
-                  Hide Results
+                  📊 View Rankings & Recommendation Summary
                 </button>
               </div>
-              
-              <DashboardView
-                candidates={candidates}
-                tradeCriteria={tradeCriteria}
-                scores={scores}
-                screeningScores={screeningScores}
-                screening={screening}
-                recommendation={recommendation}
-                onRecommendationChange={setRecommendation}
-                onCandidatesChange={setCandidates}
-              />
-            </div>
-          )}
-        </div>
-      )}
+            )}
+
+            {/* Results Section (rendered inline below Scoring Grid) */}
+            {showResults && (
+              <div
+                id="results-section"
+                style={{
+                  borderTop: "2px solid var(--border-color)",
+                  paddingTop: "2rem",
+                  marginTop: "1rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1.5rem"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                    📊 Study Results & Rankings
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowResults(false);
+                      // Scroll back to Step 2 scoring matrix bottom smoothly
+                      setTimeout(() => {
+                        document.getElementById("results-trigger-container")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                      }, 100);
+                    }}
+                    className="btn-secondary"
+                    style={{ padding: "0.5rem 1rem", fontSize: "0.85rem", borderRadius: "8px" }}
+                  >
+                    Hide Results
+                  </button>
+                </div>
+                
+                <DashboardView
+                  candidates={candidates}
+                  tradeCriteria={tradeCriteria}
+                  scores={scores}
+                  screeningScores={screeningScores}
+                  screening={screening}
+                  recommendation={recommendation}
+                  onRecommendationChange={setRecommendation}
+                  onCandidatesChange={setCandidates}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
