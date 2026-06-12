@@ -10,9 +10,10 @@ A modern, responsive web application designed to help analysts, project managers
 - **Evaluation Matrices (Step 2)**:
   - **Screening Matrix**: Toggle Pass/Fail parameters. If a candidate fails any *required* screening criterion, they are instantly flagged as `EXCLUDED`.
   - **Scoring Matrix**: Evaluate candidates against weighted criteria on a 0–5 scale (with real-time computation of raw and weighted scores). Includes a hoverable guide/tooltip describing the scoring equations.
-- **Interactive Dashboard (Step 3)**:
+- **Inline Results & Rankings**:
   - **Animated Rankings**: Real-time progress bars sorting candidates by overall score. Excluded candidates are isolated in a separate diagnostics section.
-  - **Editable Decision Summary**: Auto-generates a text summary based on results, which can be custom-edited.
+  - **Editable Decision Summary**: Auto-generates a text summary based on results, which can be custom-edited inline.
+- **🌓 Theme Switcher**: Switch between **Light**, **Dark**, and **System** themes using the toggle inside the sticky header.
 - **Data Portability**:
   - **📥 Import JSON**: Reload previous trade studies from `.json` files.
   - **💾 Export JSON**: Backup and save your trade study data.
@@ -29,7 +30,7 @@ To enable persistent data storage without requiring a dedicated backend server, 
 2. **Auto-Save Workspace**: The active workspace is continually synchronized to browser storage. If you refresh the page or return later, your active metadata, lists, raw scores, and evaluations are restored exactly where you left off.
 3. **Saved Studies Registry**: 
    - You can save your current workspace under a custom name, creating an entry in the local database.
-   - The **Study Database** dropdown at the top of the Setup tab lists all stored entries. Selecting one loads its metadata, candidates, screening rules, weighted criteria, raw score grids, and recommendations.
+   - The **Study Database** dropdown in the database panel lists all stored entries. Selecting one loads its metadata, candidates, screening rules, weighted criteria, raw score grids, and recommendations.
    - User studies can be deleted from the database using the trash icon.
 4. **Data Schema**: Saved studies are stored as a JSON array under the `"trade_studies"` key:
    - `id`: Unique string or timestamp
@@ -46,7 +47,7 @@ To enable persistent data storage without requiring a dedicated backend server, 
 │   ├── favicon.ico    # Browser icon
 │   ├── globals.css    # Global styling tokens, glassmorphism templates, background glow orbs
 │   ├── layout.tsx     # App shell setting up background layouts & head metadata
-│   └── page.tsx       # Main page controller handling state, tab navigation, and file exports
+│   └── page.tsx       # Main page controller handling state, sequential flow (Step 1 -> Step 2 -> Results), and file exports
 ├── components/
 │   ├── ListManager.tsx      # Generic, type-safe list builder (Candidates / Criteria)
 │   ├── MetadataSection.tsx  # Input controls for study metadata
