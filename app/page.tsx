@@ -92,7 +92,8 @@ const initialScores: Record<string, Record<string, number>> = {};
 const initialScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {};
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"setup" | "scoring" | "dashboard">("setup");
+  const [activeTab, setActiveTab] = useState<"setup" | "scoring">("setup");
+  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
   const [meta, setMeta] = useState<TradeStudyMeta>(initialMeta);
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [screening, setScreening] = useState<ScreeningCriterion[]>(initialScreening);
@@ -287,7 +288,7 @@ export default function Home() {
         setScores(data.scores || {});
         setScreeningScores(data.screeningScores || {});
         setRecommendation(data.recommendation || "");
-        setActiveTab("dashboard");
+        setActiveTab("scoring");
       } catch {
         alert("Failed to parse JSON file.");
       }
@@ -676,30 +677,6 @@ ${recommendation || "No recommendation documented."}
           >
             Step 2: Scoring Grid
           </button>
-          <button
-            onClick={() => {
-              if (!isWeightValid) {
-                alert("The weighted criteria must equal 100% before continuing to the next page.");
-                return;
-              }
-              setActiveTab("dashboard");
-            }}
-            className={`nav-btn ${activeTab === "dashboard" ? "active" : ""}`}
-          >
-            Step 3: Dashboard
-            {!isWeightValid && (
-              <span
-                style={{
-                  marginLeft: "0.5rem",
-                  fontSize: "0.75rem",
-                  color: "var(--accent-yellow)",
-                  fontWeight: "bold",
-                }}
-              >
-                ⚠️
-              </span>
-            )}
-          </button>
         </div>
       </header>
 
@@ -949,33 +926,104 @@ ${recommendation || "No recommendation documented."}
             onTradeCriteriaChange={setTradeCriteria}
           />
 
-          {/* Button to proceed to Step 3 */}
+          {/* Button to open Results Modal */}
           <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
             <button
               onClick={() => {
-                setActiveTab("dashboard");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                setShowResultsModal(true);
               }}
               className="btn-primary"
               style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
             >
-              📊 Generate Dashboard (Proceed to Step 3)
+              📊 View Rankings & Recommendation Summary
             </button>
           </div>
         </div>
       )}
 
-      {activeTab === "dashboard" && (
-        <DashboardView
-          candidates={candidates}
-          tradeCriteria={tradeCriteria}
-          scores={scores}
-          screeningScores={screeningScores}
-          screening={screening}
-          recommendation={recommendation}
-          onRecommendationChange={setRecommendation}
-          onCandidatesChange={setCandidates}
-        />
+      {/* Results Modal */}
+      {showResultsModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(10, 10, 15, 0.85)",
+            backdropFilter: "blur(12px)",
+            zIndex: 1000,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "2rem",
+          }}
+          onClick={() => setShowResultsModal(false)}
+        >
+          <div
+            className="glass-panel animate-fade-in"
+            style={{
+              width: "100%",
+              maxWidth: "850px",
+              maxHeight: "85vh",
+              overflowY: "auto",
+              position: "relative",
+              padding: "2.5rem 2rem 2rem 2rem",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderBottom: "1px solid var(--border-color)",
+                paddingBottom: "1rem",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "1.5rem" }}>📊</span>
+                <h2 style={{ fontSize: "1.4rem", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                  Study Results & Rankings
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowResultsModal(false)}
+                className="btn-secondary"
+                style={{
+                  padding: "0.4rem 0.8rem",
+                  fontSize: "0.85rem",
+                  borderRadius: "8px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid var(--border-color)",
+                  cursor: "pointer"
+                }}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ flex: 1, paddingRight: "0.5rem" }}>
+              <DashboardView
+                candidates={candidates}
+                tradeCriteria={tradeCriteria}
+                scores={scores}
+                screeningScores={screeningScores}
+                screening={screening}
+                recommendation={recommendation}
+                onRecommendationChange={setRecommendation}
+                onCandidatesChange={setCandidates}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
