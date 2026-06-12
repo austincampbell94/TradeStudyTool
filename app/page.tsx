@@ -234,12 +234,43 @@ export default function Home() {
             parsed.meta.lead = "Wreck It Ralph";
             localStorage.setItem("current_trade_study", JSON.stringify(parsed));
           }
+          const loadedScores = parsed.scores || {};
+          const loadedScreeningScores = parsed.screeningScores || {};
+          
+          const newScreeningScores = { ...loadedScreeningScores };
+          if (parsed.candidates && parsed.screening) {
+            parsed.candidates.forEach((cand: Candidate) => {
+              if (!newScreeningScores[cand.id]) {
+                newScreeningScores[cand.id] = {};
+              }
+              parsed.screening.forEach((s: ScreeningCriterion) => {
+                if (!newScreeningScores[cand.id][s.id]) {
+                  newScreeningScores[cand.id][s.id] = "Pass";
+                }
+              });
+            });
+          }
+
+          const newScores = { ...loadedScores };
+          if (parsed.candidates && parsed.tradeCriteria) {
+            parsed.candidates.forEach((cand: Candidate) => {
+              if (!newScores[cand.id]) {
+                newScores[cand.id] = {};
+              }
+              parsed.tradeCriteria.forEach((tc: TradeCriterion) => {
+                if (newScores[cand.id][tc.id] === undefined) {
+                  newScores[cand.id][tc.id] = 3.0;
+                }
+              });
+            });
+          }
+
           setMeta(parsed.meta || initialMeta);
           setCandidates(parsed.candidates || initialCandidates);
           setScreening(parsed.screening || initialScreening);
           setTradeCriteria(parsed.tradeCriteria || initialTradeCriteria);
-          setScores(parsed.scores || {});
-          setScreeningScores(parsed.screeningScores || {});
+          setScores(newScores);
+          setScreeningScores(newScreeningScores);
           setRecommendation(parsed.recommendation || "");
 
           const d = parsed;
@@ -262,7 +293,7 @@ export default function Home() {
               let hasAllScores = true;
               for (const cand of d.candidates) {
                 for (const s of d.screening) {
-                  if (!d.screeningScores?.[cand.id]?.[s.id]) {
+                  if (!newScreeningScores[cand.id]?.[s.id]) {
                     hasAllScores = false;
                     break;
                   }
@@ -271,7 +302,7 @@ export default function Home() {
 
                 const isFailed = d.screening.some((sc: ScreeningCriterion) => {
                   if (sc.required === "Y") {
-                    const val = d.screeningScores?.[cand.id]?.[sc.id] || "Pass";
+                    const val = newScreeningScores[cand.id]?.[sc.id] || "Pass";
                     if (val === "Fail") return true;
                   }
                   return false;
@@ -279,7 +310,7 @@ export default function Home() {
 
                 if (!isFailed) {
                   for (const tc of d.tradeCriteria) {
-                    const val = d.scores?.[cand.id]?.[tc.id];
+                    const val = newScores[cand.id]?.[tc.id];
                     if (val === undefined || val === null || isNaN(val)) {
                       hasAllScores = false;
                       break;
@@ -338,12 +369,40 @@ export default function Home() {
 
     if (confirm(`Load study "${study.name}"? Unsaved changes to your current study may be lost.`)) {
       const d = study.data;
+      
+      const loadedScores = d.scores || {};
+      const loadedScreeningScores = d.screeningScores || {};
+      
+      const newScreeningScores = { ...loadedScreeningScores };
+      (d.candidates || []).forEach((cand: Candidate) => {
+        if (!newScreeningScores[cand.id]) {
+          newScreeningScores[cand.id] = {};
+        }
+        (d.screening || []).forEach((s: ScreeningCriterion) => {
+          if (!newScreeningScores[cand.id][s.id]) {
+            newScreeningScores[cand.id][s.id] = "Pass";
+          }
+        });
+      });
+
+      const newScores = { ...loadedScores };
+      (d.candidates || []).forEach((cand: Candidate) => {
+        if (!newScores[cand.id]) {
+          newScores[cand.id] = {};
+        }
+        (d.tradeCriteria || []).forEach((tc: TradeCriterion) => {
+          if (newScores[cand.id][tc.id] === undefined) {
+            newScores[cand.id][tc.id] = 3.0;
+          }
+        });
+      });
+
       setMeta(d.meta);
       setCandidates(d.candidates);
       setScreening(d.screening);
       setTradeCriteria(d.tradeCriteria);
-      setScores(d.scores || {});
-      setScreeningScores(d.screeningScores || {});
+      setScores(newScores);
+      setScreeningScores(newScreeningScores);
       setRecommendation(d.recommendation || "");
       setSelectedStudyId(id);
 
@@ -364,7 +423,7 @@ export default function Home() {
         let hasAllScores = true;
         for (const cand of d.candidates || []) {
           for (const s of d.screening || []) {
-            if (!d.screeningScores?.[cand.id]?.[s.id]) {
+            if (!newScreeningScores[cand.id]?.[s.id]) {
               hasAllScores = false;
               break;
             }
@@ -373,7 +432,7 @@ export default function Home() {
 
           const isFailed = (d.screening || []).some((sc: ScreeningCriterion) => {
             if (sc.required === "Y") {
-              const val = d.screeningScores?.[cand.id]?.[sc.id] || "Pass";
+              const val = newScreeningScores[cand.id]?.[sc.id] || "Pass";
               if (val === "Fail") return true;
             }
             return false;
@@ -381,7 +440,7 @@ export default function Home() {
 
           if (!isFailed) {
             for (const tc of d.tradeCriteria || []) {
-              const val = d.scores?.[cand.id]?.[tc.id];
+              const val = newScores[cand.id]?.[tc.id];
               if (val === undefined || val === null || isNaN(val)) {
                 hasAllScores = false;
                 break;
@@ -466,6 +525,63 @@ export default function Home() {
           return;
         }
 
+        const importedScores = data.scores || {};
+        const importedScreeningScores = data.screeningScores || {};
+        
+        const newScreeningScores = { ...importedScreeningScores };
+        data.candidates.forEach((cand: Candidate) => {
+          if (!newScreeningScores[cand.id]) {
+            newScreeningScores[cand.id] = {};
+          }
+          data.screening.forEach((s: ScreeningCriterion) => {
+            if (!newScreeningScores[cand.id][s.id]) {
+              newScreeningScores[cand.id][s.id] = "Pass";
+            }
+          });
+        });
+
+        const newScores = { ...importedScores };
+        data.candidates.forEach((cand: Candidate) => {
+          if (!newScores[cand.id]) {
+            newScores[cand.id] = {};
+          }
+          data.tradeCriteria.forEach((tc: TradeCriterion) => {
+            if (newScores[cand.id][tc.id] === undefined) {
+              newScores[cand.id][tc.id] = 3.0;
+            }
+          });
+        });
+
+        let hasAllScores = true;
+        for (const cand of data.candidates) {
+          for (const s of data.screening) {
+            if (!newScreeningScores[cand.id]?.[s.id]) {
+              hasAllScores = false;
+              break;
+            }
+          }
+          if (!hasAllScores) break;
+
+          const isFailed = data.screening.some((sc: ScreeningCriterion) => {
+            if (sc.required === "Y") {
+              const val = newScreeningScores[cand.id]?.[sc.id] || "Pass";
+              if (val === "Fail") return true;
+            }
+            return false;
+          });
+
+          if (!isFailed) {
+            for (const tc of data.tradeCriteria) {
+              const val = newScores[cand.id]?.[tc.id];
+              if (val === undefined || val === null || isNaN(val)) {
+                hasAllScores = false;
+                break;
+              }
+            }
+          }
+          if (!hasAllScores) break;
+        }
+
         setMeta({
           project: data.meta.project || "",
           sponsor: data.meta.sponsor || "",
@@ -476,11 +592,11 @@ export default function Home() {
         setCandidates(data.candidates);
         setScreening(data.screening);
         setTradeCriteria(data.tradeCriteria);
-        setScores(data.scores || {});
-        setScreeningScores(data.screeningScores || {});
+        setScores(newScores);
+        setScreeningScores(newScreeningScores);
         setRecommendation(data.recommendation || "");
         setShowStep2(true);
-        setShowResults(true);
+        setShowResults(hasAllScores);
       } catch {
         alert("Failed to parse JSON file.");
       }
@@ -1080,6 +1196,44 @@ ${recommendation || "No recommendation documented."}
                 alert(`The Step 1 setup is incomplete. Please fix the following errors before continuing:\n\n${errors.map((e, idx) => `${idx + 1}. ${e}`).join("\n")}`);
                 return;
               }
+
+              // Initialize default scores for any empty values
+              const newScreeningScores = { ...screeningScores };
+              let screeningUpdated = false;
+              candidates.forEach(cand => {
+                if (!newScreeningScores[cand.id]) {
+                  newScreeningScores[cand.id] = {};
+                  screeningUpdated = true;
+                }
+                screening.forEach(s => {
+                  if (!newScreeningScores[cand.id][s.id]) {
+                    newScreeningScores[cand.id][s.id] = "Pass";
+                    screeningUpdated = true;
+                  }
+                });
+              });
+              if (screeningUpdated) {
+                setScreeningScores(newScreeningScores);
+              }
+
+              const newScores = { ...scores };
+              let scoresUpdated = false;
+              candidates.forEach(cand => {
+                if (!newScores[cand.id]) {
+                  newScores[cand.id] = {};
+                  scoresUpdated = true;
+                }
+                tradeCriteria.forEach(tc => {
+                  if (newScores[cand.id][tc.id] === undefined) {
+                    newScores[cand.id][tc.id] = 3.0;
+                    scoresUpdated = true;
+                  }
+                });
+              });
+              if (scoresUpdated) {
+                setScores(newScores);
+              }
+
               setShowStep2(true);
               setTimeout(() => {
                 document.getElementById("step-2-trigger-container")?.scrollIntoView({ behavior: "smooth", block: "start" });
