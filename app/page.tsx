@@ -665,13 +665,25 @@ ${recommendation || "No recommendation documented."}
             Step 1: Setup
           </button>
           <button
-            onClick={() => setActiveTab("scoring")}
+            onClick={() => {
+              if (!isWeightValid) {
+                alert("The weighted criteria must equal 100% before continuing to the next page.");
+                return;
+              }
+              setActiveTab("scoring");
+            }}
             className={`nav-btn ${activeTab === "scoring" ? "active" : ""}`}
           >
             Step 2: Scoring Grid
           </button>
           <button
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => {
+              if (!isWeightValid) {
+                alert("The weighted criteria must equal 100% before continuing to the next page.");
+                return;
+              }
+              setActiveTab("dashboard");
+            }}
             className={`nav-btn ${activeTab === "dashboard" ? "active" : ""}`}
           >
             Step 3: Dashboard
@@ -882,6 +894,10 @@ ${recommendation || "No recommendation documented."}
           <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
             <button
               onClick={() => {
+                if (!isWeightValid) {
+                  alert("The weighted criteria must equal 100% before continuing to the next page.");
+                  return;
+                }
                 if (candidates.some(c => !c.name) || screening.some(s => !s.name) || tradeCriteria.some(tc => !tc.name)) {
                   if (!confirm("Some fields are still empty. Do you want to proceed to Step 2 with defaults?")) {
                     return;
@@ -890,8 +906,20 @@ ${recommendation || "No recommendation documented."}
                 setActiveTab("scoring");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="btn-primary"
-              style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
+              className={`btn-primary ${!isWeightValid ? "disabled" : ""}`}
+              style={{
+                padding: "1rem 2.5rem",
+                fontSize: "1.05rem",
+                borderRadius: "12px",
+                ...(!isWeightValid ? {
+                  background: "rgba(255, 255, 255, 0.08)",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--border-color)",
+                  cursor: "not-allowed",
+                  boxShadow: "none",
+                  transform: "none",
+                } : {})
+              }}
             >
               🚀 Generate Scoring Grid (Proceed to Step 2)
             </button>
