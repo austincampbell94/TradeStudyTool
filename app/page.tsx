@@ -107,22 +107,6 @@ export default function Home() {
     return (localStorage.getItem("app_theme") as "light" | "dark" | "system") || "system";
   });
 
-  const [blueLightActive, setBlueLightActive] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("blue_light_filter") === "true";
-  });
-
-  // Sync blue light filter to body element class and localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("blue_light_filter", String(blueLightActive));
-    if (blueLightActive) {
-      document.body.classList.add("blue-light-active");
-    } else {
-      document.body.classList.remove("blue-light-active");
-    }
-  }, [blueLightActive]);
-
   // Sync theme to document element and localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -987,7 +971,7 @@ ${recommendation || "No recommendation documented."}
       {/* App Header */}
       <header className="app-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {/* Balanced spacer to keep logo centered */}
-        <div style={{ width: "230px" }} aria-hidden="true"></div>
+        <div style={{ width: "130px" }} aria-hidden="true"></div>
 
         {/* Logo */}
         <div 
@@ -1013,111 +997,83 @@ ${recommendation || "No recommendation documented."}
           </span>
         </div>
 
-        {/* Header Controls (Theme and Warm Filter) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "230px", justifyContent: "flex-end" }}>
-          {/* Blue Light Filter Button */}
-          <button
+        {/* Theme Selector */}
+        <div 
+          style={{ 
+            display: "flex", 
+            background: "rgba(255, 255, 255, 0.05)", 
+            border: "1px solid var(--border-color)", 
+            borderRadius: "20px", 
+            padding: "2px",
+            gap: "2px",
+            alignItems: "center",
+            width: "130px",
+            justifyContent: "space-between"
+          }}
+        >
+          <button 
             type="button"
-            onClick={() => setBlueLightActive(!blueLightActive)}
-            style={{
-              background: blueLightActive ? "rgba(245, 158, 11, 0.15)" : "rgba(255, 255, 255, 0.05)",
-              color: blueLightActive ? "var(--accent-yellow)" : "var(--text-secondary)",
-              border: `1px solid ${blueLightActive ? "var(--accent-yellow)" : "var(--border-color)"}`,
-              borderRadius: "20px",
-              padding: "4px 10px",
+            onClick={() => setTheme("light")} 
+            style={{ 
+              background: theme === "light" ? "var(--accent-blue)" : "transparent",
+              color: theme === "light" ? "#fff" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
               fontSize: "0.75rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "4px",
-              fontWeight: 600,
+              justifyContent: "center",
               transition: "all 0.2s ease",
-              flexShrink: 0
+              flex: 1
             }}
-            title={blueLightActive ? "Disable Blue Light Filter" : "Enable Blue Light Filter"}
+            title="Light Mode"
           >
-            👓 {blueLightActive ? "Warm ON" : "Warm"}
+            ☀️
           </button>
-
-          {/* Theme Selector */}
-          <div 
+          <button 
+            type="button"
+            onClick={() => setTheme("dark")} 
             style={{ 
-              display: "flex", 
-              background: "rgba(255, 255, 255, 0.05)", 
-              border: "1px solid var(--border-color)", 
-              borderRadius: "20px", 
-              padding: "2px",
-              gap: "2px",
+              background: theme === "dark" ? "var(--accent-indigo)" : "transparent",
+              color: theme === "dark" ? "#fff" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "flex",
               alignItems: "center",
-              width: "130px",
-              justifyContent: "space-between",
-              flexShrink: 0
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              flex: 1
             }}
+            title="Dark Mode"
           >
-            <button 
-              type="button"
-              onClick={() => setTheme("light")} 
-              style={{ 
-                background: theme === "light" ? "var(--accent-blue)" : "transparent",
-                color: theme === "light" ? "#fff" : "var(--text-secondary)",
-                border: "none",
-                borderRadius: "18px",
-                padding: "4px 8px",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-                flex: 1
-              }}
-              title="Light Mode"
-            >
-              ☀️
-            </button>
-            <button 
-              type="button"
-              onClick={() => setTheme("dark")} 
-              style={{ 
-                background: theme === "dark" ? "var(--accent-indigo)" : "transparent",
-                color: theme === "dark" ? "#fff" : "var(--text-secondary)",
-                border: "none",
-                borderRadius: "18px",
-                padding: "4px 8px",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-                flex: 1
-              }}
-              title="Dark Mode"
-            >
-              🌙
-            </button>
-            <button 
-              type="button"
-              onClick={() => setTheme("system")} 
-              style={{ 
-                background: theme === "system" ? "rgba(255, 255, 255, 0.15)" : "transparent",
-                color: theme === "system" ? "var(--text-primary)" : "var(--text-secondary)",
-                border: "none",
-                borderRadius: "18px",
-                padding: "4px 8px",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-                flex: 1
-              }}
-              title="System Mode"
-            >
-              💻
-            </button>
-          </div>
+            🌙
+          </button>
+          <button 
+            type="button"
+            onClick={() => setTheme("system")} 
+            style={{ 
+              background: theme === "system" ? "rgba(255, 255, 255, 0.15)" : "transparent",
+              color: theme === "system" ? "var(--text-primary)" : "var(--text-secondary)",
+              border: "none",
+              borderRadius: "18px",
+              padding: "4px 8px",
+              fontSize: "0.75rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              flex: 1
+            }}
+            title="System Mode"
+          >
+            💻
+          </button>
         </div>
       </header>
 
@@ -1242,7 +1198,7 @@ ${recommendation || "No recommendation documented."}
                 value={selectedStudyId}
                 onChange={(e) => handleLoadStudy(e.target.value)}
                 className="form-input form-select"
-                style={{ width: "220px", padding: "0.5rem 2rem 0.5rem 1rem", fontSize: "0.85rem" }}
+                style={{ width: "220px", padding: "0.5rem 1rem", fontSize: "0.85rem" }}
               >
                 <option value="">-- Load Saved Study --</option>
                 <option value="new">🆕 Create New Blank Study</option>
