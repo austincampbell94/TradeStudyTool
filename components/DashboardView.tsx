@@ -215,7 +215,7 @@ export default function DashboardView({
           <textarea
             className="form-input"
             rows={6}
-            style={{ width: "100%", fontFamily: "inherit", resize: "vertical", background: "rgba(0,0,0,0.3)" }}
+            style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
             value={recommendation}
             onChange={(e) => {
               onRecommendationChange(e.target.value);
