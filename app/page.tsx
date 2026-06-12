@@ -1084,7 +1084,7 @@ ${recommendation || "No recommendation documented."}
               } : {})
             }}
           >
-            🚀 Generate Scoring Grid (Proceed to Step 2)
+            🚀 Proceed to Evaluation & Scoring
           </button>
         </div>
 

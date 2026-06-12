@@ -54,8 +54,30 @@ export default function ListManager<T extends { id: string; name: string; desc: 
     <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>{title}</h3>
-          <p className="panel-subtitle" style={{ fontSize: "0.85rem" }}>{subtitle}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <h3 className="panel-title" style={{ fontSize: "1.25rem", margin: 0 }}>{title}</h3>
+            {type === "screening" && (
+              <div className="tooltip-container">
+                <span style={{ cursor: "help", fontSize: "1.1rem", opacity: 0.7 }}>❓</span>
+                <span className="tooltip-text">
+                  <strong>Screening Criteria:</strong>
+                  <br />
+                  These are mandatory, binary (Pass/Fail) requirements that all candidates must meet. Failing a required criterion immediately excludes a candidate from the final trade study evaluations.
+                </span>
+              </div>
+            )}
+            {type === "tradeCriteria" && (
+              <div className="tooltip-container">
+                <span style={{ cursor: "help", fontSize: "1.1rem", opacity: 0.7 }}>❓</span>
+                <span className="tooltip-text">
+                  <strong>Weighted Criteria:</strong>
+                  <br />
+                  These are the scoring criteria used to rate qualified candidates. Each criterion is assigned a percentage weight, representing its relative importance. The total weight across all criteria must sum to exactly 100%.
+                </span>
+              </div>
+            )}
+          </div>
+          <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginTop: "0.25rem", marginBottom: 0 }}>{subtitle}</p>
         </div>
         <button
           type="button"

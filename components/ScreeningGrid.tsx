@@ -49,9 +49,23 @@ export default function ScreeningGrid({
 
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
-      <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-        Screening Matrix (Pass / Fail)
-      </h3>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+        <h3 className="panel-title" style={{ fontSize: "1.25rem", margin: 0 }}>
+          Screening Matrix (Pass / Fail)
+        </h3>
+        <div className="tooltip-container">
+          <span style={{ cursor: "help", fontSize: "1.1rem", opacity: 0.7 }}>❓</span>
+          <span className="tooltip-text">
+            <strong>How to use the Screening Matrix:</strong>
+            <br />
+            1. Toggle each candidate as <strong>Pass</strong> or <strong>Fail</strong> for each screening criterion.
+            <br />
+            2. If a candidate is marked as <strong>Fail</strong> on a <strong>Required (Y)</strong> criterion, they are immediately excluded.
+            <br />
+            3. Excluded candidates are visually marked in red and excluded from scoring calculations.
+          </span>
+        </div>
+      </div>
       <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
         Filter candidates before scoring. You can also edit candidate names/descriptions and screening criteria inline.
       </p>
