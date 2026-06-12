@@ -25,6 +25,31 @@ export default function ListManager<T extends { id: string; name: string; desc: 
   const MIN = 3;
   const MAX = 10;
 
+  const getPlaceholders = (typeStr: "candidates" | "screening" | "tradeCriteria", idx: number) => {
+    if (typeStr === "candidates") {
+      const names = ["e.g. Vendor A Relay", "e.g. Vendor B Relay", "e.g. In-house Dev"];
+      const descs = ["e.g. Mature product, higher cost", "e.g. Lower cost, emerging product", "e.g. Custom build, longer lead time"];
+      return {
+        name: names[idx] || "e.g. Candidate Name",
+        desc: descs[idx] || "e.g. Candidate description",
+      };
+    } else if (typeStr === "screening") {
+      const names = ["e.g. Meets MIL-STD baseline", "e.g. Bandwidth >= 10 Mbps", "e.g. Delivery within 12 months"];
+      const descs = ["e.g. Basic environmental spec", "e.g. Throughput requirement", "e.g. Schedule constraint"];
+      return {
+        name: names[idx] || "e.g. Screening Criterion",
+        desc: descs[idx] || "e.g. Criterion description",
+      };
+    } else {
+      const names = ["e.g. Performance", "e.g. Cost", "e.g. Schedule / Maturity"];
+      const descs = ["e.g. Throughput, latency, etc.", "e.g. Lifecycle cost class", "e.g. Time to field & confidence"];
+      return {
+        name: names[idx] || "e.g. Trade Criterion",
+        desc: descs[idx] || "e.g. Criterion description",
+      };
+    }
+  };
+
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -47,6 +72,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
         {items.map((item, index) => {
           const isScreening = type === "screening";
           const isTrade = type === "tradeCriteria";
+          const placeholders = getPlaceholders(type, index);
 
           return (
             <div key={item.id} className="list-item-row">
@@ -57,7 +83,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                 <div style={{ flex: 2 }}>
                   <input
                     type="text"
-                    placeholder="Name"
+                    placeholder={placeholders.name}
                     value={item.name}
                     onChange={(e) => onChange(index, "name", e.target.value)}
                     className="form-input"
@@ -68,7 +94,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                 <div style={{ flex: 3 }}>
                   <input
                     type="text"
-                    placeholder="Short Description"
+                    placeholder={placeholders.desc}
                     value={item.desc}
                     onChange={(e) => onChange(index, "desc", e.target.value)}
                     className="form-input"

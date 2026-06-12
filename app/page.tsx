@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TradeStudyMeta, Candidate, ScreeningCriterion, TradeCriterion } from "../types/trade";
 import MetadataSection from "../components/MetadataSection";
 import ListManager from "../components/ListManager";
@@ -8,47 +8,91 @@ import ScreeningGrid from "../components/ScreeningGrid";
 import ScoringMatrix from "../components/ScoringMatrix";
 import DashboardView from "../components/DashboardView";
 
-// Default template state based on the user's Comms Relay example
+// Interface for database studies
+interface SavedStudy {
+  id: string;
+  name: string;
+  data: {
+    meta: TradeStudyMeta;
+    candidates: Candidate[];
+    screening: ScreeningCriterion[];
+    tradeCriteria: TradeCriterion[];
+    scores: Record<string, Record<string, number>>;
+    screeningScores: Record<string, Record<string, "Pass" | "Fail">>;
+    recommendation: string;
+  };
+  timestamp: string;
+}
+
+// Demo trade study template (seeded in browser database)
+const DEMO_STUDY = {
+  meta: {
+    project: "Comms Relay Options",
+    sponsor: "Example Project Office",
+    lead: "Jane Doe",
+    date: "2026-05-15",
+    version: "1.0",
+  },
+  candidates: [
+    { id: "C-1", name: "Vendor A Relay", desc: "Mature product, higher cost" },
+    { id: "C-2", name: "Vendor B Relay", desc: "Lower cost, emerging product" },
+    { id: "C-3", name: "In-house Dev", desc: "Custom build, longer lead time" },
+  ],
+  screening: [
+    { id: "SC-1", name: "Meets MIL-STD baseline", desc: "Basic environmental spec", required: "Y" as const },
+    { id: "SC-2", name: "Bandwidth >= 10 Mbps", desc: "Throughput requirement", required: "Y" as const },
+    { id: "SC-3", name: "Delivery within 12 months", desc: "Schedule constraint", required: "Y" as const },
+  ],
+  tradeCriteria: [
+    { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 40 },
+    { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 30 },
+    { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 30 },
+  ],
+  scores: {
+    "C-1": { "TC-1": 4, "TC-2": 2, "TC-3": 4 },
+    "C-2": { "TC-1": 3, "TC-2": 4, "TC-3": 3 },
+    "C-3": { "TC-1": 2, "TC-2": 1, "TC-3": 1 },
+  },
+  screeningScores: {
+    "C-1": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const },
+    "C-2": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Fail" as const },
+    "C-3": { "SC-1": "Fail" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const },
+  },
+  recommendation: "Based on the trade study criteria and weighting, Candidate **Vendor A Relay** is recommended with a total weighted score of **0.680** (68.0%).\n\nIt outperformed the runner-up, **Vendor B Relay** (score: 0.660), by a margin of 0.020.\n\nNote: Candidates In-house Dev was excluded from selection due to failing mandatory screening criteria."
+};
+
+// Default empty state for the user's workspace
 const initialMeta: TradeStudyMeta = {
-  project: "Comms Relay Options",
-  sponsor: "Example Project Office",
-  lead: "Jane Doe",
-  date: "2026-05-15",
+  project: "",
+  sponsor: "",
+  lead: "",
+  date: "",
   version: "1.0",
 };
 
 const initialCandidates: Candidate[] = [
-  { id: "C-1", name: "Vendor A Relay", desc: "Mature product, higher cost" },
-  { id: "C-2", name: "Vendor B Relay", desc: "Lower cost, emerging product" },
-  { id: "C-3", name: "In-house Dev", desc: "Custom build, longer lead time" },
+  { id: "C-1", name: "", desc: "" },
+  { id: "C-2", name: "", desc: "" },
+  { id: "C-3", name: "", desc: "" },
 ];
 
 const initialScreening: ScreeningCriterion[] = [
-  { id: "SC-1", name: "Meets MIL-STD baseline", desc: "Basic environmental spec", required: "Y" },
-  { id: "SC-2", name: "Bandwidth >= 10 Mbps", desc: "Throughput requirement", required: "Y" },
-  { id: "SC-3", name: "Delivery within 12 months", desc: "Schedule constraint", required: "Y" },
+  { id: "SC-1", name: "", desc: "", required: "Y" },
+  { id: "SC-2", name: "", desc: "", required: "Y" },
+  { id: "SC-3", name: "", desc: "", required: "Y" },
 ];
 
 const initialTradeCriteria: TradeCriterion[] = [
-  { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 40 },
-  { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 30 },
-  { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 30 },
+  { id: "TC-1", name: "", desc: "", weight: 40 },
+  { id: "TC-2", name: "", desc: "", weight: 30 },
+  { id: "TC-3", name: "", desc: "", weight: 30 },
 ];
 
-const initialScores: Record<string, Record<string, number>> = {
-  "C-1": { "TC-1": 4, "TC-2": 2, "TC-3": 4 },
-  "C-2": { "TC-1": 3, "TC-2": 4, "TC-3": 3 },
-  "C-3": { "TC-1": 2, "TC-2": 1, "TC-3": 1 },
-};
-
-const initialScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {
-  "C-1": { "SC-1": "Pass", "SC-2": "Pass", "SC-3": "Pass" },
-  "C-2": { "SC-1": "Pass", "SC-2": "Pass", "SC-3": "Fail" }, // Fails SC-3 -> Excluded
-  "C-3": { "SC-1": "Fail", "SC-2": "Pass", "SC-3": "Pass" }, // Fails SC-1 -> Excluded
-};
+const initialScores: Record<string, Record<string, number>> = {};
+const initialScreeningScores: Record<string, Record<string, "Pass" | "Fail">> = {};
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"setup" | "scoring" | "dashboard">("dashboard");
+  const [activeTab, setActiveTab] = useState<"setup" | "scoring" | "dashboard">("setup");
   const [meta, setMeta] = useState<TradeStudyMeta>(initialMeta);
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [screening, setScreening] = useState<ScreeningCriterion[]>(initialScreening);
@@ -56,8 +100,159 @@ export default function Home() {
   const [scores, setScores] = useState<Record<string, Record<string, number>>>(initialScores);
   const [screeningScores, setScreeningScores] = useState<Record<string, Record<string, "Pass" | "Fail">>>(initialScreeningScores);
   const [recommendation, setRecommendation] = useState<string>("");
+
+  // Database States
+  const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
+  const [selectedStudyId, setSelectedStudyId] = useState<string>("");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize browser localStorage database and load active workspace
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = localStorage.getItem("trade_studies");
+    let studiesList: SavedStudy[] = [];
+
+    if (!stored) {
+      studiesList = [
+        {
+          id: "demo",
+          name: "Comms Relay Options (Demo)",
+          data: DEMO_STUDY,
+          timestamp: new Date().toISOString()
+        }
+      ];
+      localStorage.setItem("trade_studies", JSON.stringify(studiesList));
+    } else {
+      try {
+        studiesList = JSON.parse(stored);
+      } catch {
+        studiesList = [];
+      }
+    }
+
+    // Wrap state updates in setTimeout to avoid synchronous setState inside useEffect warning
+    setTimeout(() => {
+      setSavedStudies(studiesList);
+
+      // Load last session workspace if it exists
+      const currentActive = localStorage.getItem("current_trade_study");
+      if (currentActive) {
+        try {
+          const parsed = JSON.parse(currentActive);
+          setMeta(parsed.meta || initialMeta);
+          setCandidates(parsed.candidates || initialCandidates);
+          setScreening(parsed.screening || initialScreening);
+          setTradeCriteria(parsed.tradeCriteria || initialTradeCriteria);
+          setScores(parsed.scores || {});
+          setScreeningScores(parsed.screeningScores || {});
+          setRecommendation(parsed.recommendation || "");
+        } catch (e) {
+          console.error("Failed to parse current active study", e);
+        }
+      }
+    }, 0);
+  }, []);
+
+  // Auto-save active workspace state to localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const activeData = {
+      meta,
+      candidates,
+      screening,
+      tradeCriteria,
+      scores,
+      screeningScores,
+      recommendation
+    };
+    localStorage.setItem("current_trade_study", JSON.stringify(activeData));
+  }, [meta, candidates, screening, tradeCriteria, scores, screeningScores, recommendation]);
+
+  // Database functions
+  const handleLoadStudy = (id: string) => {
+    if (!id) return;
+    
+    if (id === "new") {
+      if (confirm("Are you sure you want to start a new blank study? Unsaved changes to your current study may be lost.")) {
+        setMeta(initialMeta);
+        setCandidates(initialCandidates);
+        setScreening(initialScreening);
+        setTradeCriteria(initialTradeCriteria);
+        setScores(initialScores);
+        setScreeningScores(initialScreeningScores);
+        setRecommendation("");
+        setSelectedStudyId("");
+      }
+      return;
+    }
+
+    const study = savedStudies.find(s => s.id === id);
+    if (!study) return;
+
+    if (confirm(`Load study "${study.name}"? Unsaved changes to your current study may be lost.`)) {
+      const d = study.data;
+      setMeta(d.meta);
+      setCandidates(d.candidates);
+      setScreening(d.screening);
+      setTradeCriteria(d.tradeCriteria);
+      setScores(d.scores || {});
+      setScreeningScores(d.screeningScores || {});
+      setRecommendation(d.recommendation || "");
+      setSelectedStudyId(id);
+    }
+  };
+
+  const handleSaveStudyToDb = () => {
+    const studyName = meta.project.trim() || prompt("Enter a name for this trade study:")?.trim();
+    if (!studyName) {
+      alert("Please enter a name to save your study.");
+      return;
+    }
+
+    const newId = selectedStudyId && selectedStudyId !== "demo" ? selectedStudyId : `study-${Date.now()}`;
+    const studyData = {
+      meta,
+      candidates,
+      screening,
+      tradeCriteria,
+      scores,
+      screeningScores,
+      recommendation
+    };
+
+    const updatedStudies = savedStudies.filter(s => s.id !== newId);
+    updatedStudies.push({
+      id: newId,
+      name: studyName,
+      data: studyData,
+      timestamp: new Date().toISOString()
+    });
+
+    localStorage.setItem("trade_studies", JSON.stringify(updatedStudies));
+    setSavedStudies(updatedStudies);
+    setSelectedStudyId(newId);
+    
+    if (!meta.project.trim()) {
+      setMeta(prev => ({ ...prev, project: studyName }));
+    }
+    
+    alert(`Study "${studyName}" successfully saved to local database!`);
+  };
+
+  const handleDeleteStudyFromDb = (id: string) => {
+    if (id === "demo") return;
+    const study = savedStudies.find(s => s.id === id);
+    if (!study) return;
+
+    if (confirm(`Are you sure you want to delete "${study.name}" from the database?`)) {
+      const updatedStudies = savedStudies.filter(s => s.id !== id);
+      localStorage.setItem("trade_studies", JSON.stringify(updatedStudies));
+      setSavedStudies(updatedStudies);
+      setSelectedStudyId("");
+    }
+  };
 
   // Validate weight sum
   const weightSum = tradeCriteria.reduce((sum, tc) => sum + tc.weight, 0);
@@ -594,8 +789,63 @@ ${recommendation || "No recommendation documented."}
       {/* Main Tab Panels */}
       {activeTab === "setup" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+          {/* Browser Local Database Panel */}
+          <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+              <div>
+                <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>Study Database</h3>
+                <p className="panel-subtitle" style={{ fontSize: "0.85rem" }}>Save your work locally in the browser or load templates.</p>
+              </div>
+              <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+                <select
+                  value={selectedStudyId}
+                  onChange={(e) => handleLoadStudy(e.target.value)}
+                  className="form-input form-select"
+                  style={{ width: "220px", padding: "0.5rem 2rem 0.5rem 1rem", fontSize: "0.85rem" }}
+                >
+                  <option value="">-- Load Saved Study --</option>
+                  <option value="new">🆕 Create New Blank Study</option>
+                  {savedStudies.map((study) => (
+                    <option key={study.id} value={study.id}>
+                      📁 {study.name}
+                    </option>
+                  ))}
+                </select>
+                
+                <button
+                  onClick={handleSaveStudyToDb}
+                  className="btn-primary"
+                  style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}
+                >
+                  💾 Save Current Study
+                </button>
+                
+                {selectedStudyId && selectedStudyId !== "demo" && (
+                  <button
+                    onClick={() => handleDeleteStudyFromDb(selectedStudyId)}
+                    className="btn-danger"
+                    style={{ padding: "0.5rem", borderRadius: "10px" }}
+                    title="Delete study from database"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <MetadataSection meta={meta} onChange={setMeta} />
           
+          <ListManager
+            type="screening"
+            title="Screening Criteria (3 to 10)"
+            subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
+            items={screening}
+            onAdd={handleAddScreening}
+            onRemove={handleRemoveScreening}
+            onChange={handleChangeScreening}
+          />
+
           <ListManager
             type="candidates"
             title="Candidates (3 to 10)"
@@ -607,16 +857,6 @@ ${recommendation || "No recommendation documented."}
           />
           
           <ListManager
-            type="screening"
-            title="Screening Criteria (3 to 10)"
-            subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
-            items={screening}
-            onAdd={handleAddScreening}
-            onRemove={handleRemoveScreening}
-            onChange={handleChangeScreening}
-          />
-          
-          <ListManager
             type="tradeCriteria"
             title="Trade Criteria (3 to 10)"
             subtitle="Scored criteria with weights summing to 100%. Adjust weights here or on Step 3."
@@ -625,6 +865,25 @@ ${recommendation || "No recommendation documented."}
             onRemove={handleRemoveTradeCriterion}
             onChange={handleChangeTradeCriterion}
           />
+
+          {/* Button to proceed to Step 2 */}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+            <button
+              onClick={() => {
+                if (candidates.some(c => !c.name) || screening.some(s => !s.name) || tradeCriteria.some(tc => !tc.name)) {
+                  if (!confirm("Some fields are still empty. Do you want to proceed to Step 2 with defaults?")) {
+                    return;
+                  }
+                }
+                setActiveTab("scoring");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="btn-primary"
+              style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
+            >
+              🚀 Generate Scoring Grid (Proceed to Step 2)
+            </button>
+          </div>
         </div>
       )}
 
