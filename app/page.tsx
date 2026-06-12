@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { TradeStudyMeta, Candidate, ScreeningCriterion, TradeCriterion } from "../types/trade";
 import MetadataSection from "../components/MetadataSection";
 import ListManager from "../components/ListManager";
@@ -140,8 +140,6 @@ export default function Home() {
   const [savedStudies, setSavedStudies] = useState<SavedStudy[]>([]);
   const [selectedStudyId, setSelectedStudyId] = useState<string>("");
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Helper: Determine overall screening result per candidate
   const getOverallScreening = (candId: string) => {
     const candScores = screeningScores[candId] || {};
@@ -539,104 +537,6 @@ export default function Home() {
       setSelectedStudyId("");
     }
   };
-
-
-
-  // JSON Import handler
-  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = JSON.parse(event.target?.result as string);
-        
-        // Basic validations
-        if (!data.meta || !data.candidates || !data.screening || !data.tradeCriteria) {
-          alert("Invalid trade study file structure. Required fields missing.");
-          return;
-        }
-
-        const importedScores = data.scores || {};
-        const importedScreeningScores = data.screeningScores || {};
-        
-        const newScreeningScores = { ...importedScreeningScores };
-        data.candidates.forEach((cand: Candidate) => {
-          if (!newScreeningScores[cand.id]) {
-            newScreeningScores[cand.id] = {};
-          }
-          data.screening.forEach((s: ScreeningCriterion) => {
-            if (!newScreeningScores[cand.id][s.id]) {
-              newScreeningScores[cand.id][s.id] = "Pass";
-            }
-          });
-        });
-
-        const newScores = { ...importedScores };
-        data.candidates.forEach((cand: Candidate) => {
-          if (!newScores[cand.id]) {
-            newScores[cand.id] = {};
-          }
-          data.tradeCriteria.forEach((tc: TradeCriterion) => {
-            if (newScores[cand.id][tc.id] === undefined) {
-              newScores[cand.id][tc.id] = 3.0;
-            }
-          });
-        });
-
-        let hasAllScores = true;
-        for (const cand of data.candidates) {
-          for (const s of data.screening) {
-            if (!newScreeningScores[cand.id]?.[s.id]) {
-              hasAllScores = false;
-              break;
-            }
-          }
-          if (!hasAllScores) break;
-
-          const isFailed = data.screening.some((sc: ScreeningCriterion) => {
-            if (sc.required === "Y") {
-              const val = newScreeningScores[cand.id]?.[sc.id] || "Pass";
-              if (val === "Fail") return true;
-            }
-            return false;
-          });
-
-          if (!isFailed) {
-            for (const tc of data.tradeCriteria) {
-              const val = newScores[cand.id]?.[tc.id];
-              if (val === undefined || val === null || isNaN(val)) {
-                hasAllScores = false;
-                break;
-              }
-            }
-          }
-          if (!hasAllScores) break;
-        }
-
-        setMeta({
-          project: data.meta.project || "",
-          sponsor: data.meta.sponsor || "",
-          lead: data.meta.lead || "",
-          date: data.meta.date || "",
-          version: data.meta.version || "1.0",
-        });
-        setCandidates(data.candidates);
-        setScreening(data.screening);
-        setTradeCriteria(data.tradeCriteria);
-        setScores(newScores);
-        setScreeningScores(newScreeningScores);
-        setRecommendation(data.recommendation || "");
-        setShowStep2(true);
-        setShowResults(hasAllScores);
-      } catch {
-        alert("Failed to parse JSON file.");
-      }
-    };
-    reader.readAsText(file);
-  };
-
   // Export JSON
   const handleExportJson = () => {
     const data = {
@@ -1237,18 +1137,7 @@ ${recommendation || "No recommendation documented."}
         </div>
 
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          {/* Hidden File Input */}
-          <input
-            type="file"
-            accept=".json"
-            ref={fileInputRef}
-            onChange={handleImportJson}
-            style={{ display: "none" }}
-          />
-          <button onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}>
-            📥 Import JSON
-          </button>
-          
+
           <button onClick={handleExportJson} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.85rem" }}>
             💾 Export JSON
           </button>

@@ -15,7 +15,6 @@ A modern, responsive web application designed to help analysts, project managers
   - **Editable Decision Summary**: Auto-generates a text summary based on results, which can be custom-edited inline.
 - **🌓 Theme Switcher**: Switch between **Light**, **Dark**, and **System** themes using the toggle inside the sticky header.
 - **Data Portability**:
-  - **📥 Import JSON**: Reload previous trade studies from `.json` files.
   - **💾 Export JSON**: Backup and save your trade study data.
   - **📊 Export CSV**: Export raw and weighted scoring matrices for spreadsheet analysis.
   - **📝 Export Markdown**: Download a formatted, shareable report structure conforming to standard Microsoft/MITRE templates.
