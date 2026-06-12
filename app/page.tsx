@@ -638,9 +638,20 @@ ${recommendation || "No recommendation documented."}
     <main className="app-container">
       {/* App Header */}
       <header className="app-header">
-        <div className="logo-section">
-          <span>⚖️</span>
-          <span>
+        <div className="logo-section" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3V21M12 21H9M12 21H15M12 6L4 9M12 6L20 9" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 9C4 13 6 15 6 15M6 15C6 15 8 13 8 9M6 15V19M6 19H5M6 19H7" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 9C20 13 22 15 22 15M22 15C22 15 24 13 24 9M22 15V19M22 19H21M22 19H23" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs>
+              <linearGradient id="logo-grad" x1="4" y1="3" x2="24" y2="21" gradientUnits="userSpaceOnUse">
+                <stop stopColor="var(--accent-blue)" />
+                <stop offset="0.5" stopColor="var(--accent-indigo)" />
+                <stop offset="1" stopColor="var(--accent-purple)" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span style={{ letterSpacing: "-0.01em" }}>
             TradeStudy<span className="logo-text-highlight">Tool</span>
           </span>
         </div>
@@ -745,8 +756,9 @@ ${recommendation || "No recommendation documented."}
           {!isWeightValid && (
             <div
               style={{
-                background: "rgba(245, 158, 11, 0.1)",
-                color: "var(--accent-yellow)",
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.25)",
+                color: "var(--accent-red)",
                 padding: "0.25rem 0.5rem",
                 borderRadius: "4px",
                 fontSize: "0.75rem",
@@ -754,7 +766,7 @@ ${recommendation || "No recommendation documented."}
                 alignSelf: "center"
               }}
             >
-              Weights sum to {weightSum}% (must be 100%)
+              Weighted criteria sum is {weightSum}% (must sum to exactly 100%)
             </div>
           )}
         </div>
@@ -858,8 +870,8 @@ ${recommendation || "No recommendation documented."}
           
           <ListManager
             type="tradeCriteria"
-            title="Trade Criteria (3 to 10)"
-            subtitle="Scored criteria with weights summing to 100%. Adjust weights here or on Step 3."
+            title="Weighted Criteria (3 to 10)"
+            subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
             items={tradeCriteria}
             onAdd={handleAddTradeCriterion}
             onRemove={handleRemoveTradeCriterion}
@@ -908,6 +920,20 @@ ${recommendation || "No recommendation documented."}
             onCandidatesChange={setCandidates}
             onTradeCriteriaChange={setTradeCriteria}
           />
+
+          {/* Button to proceed to Step 3 */}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+            <button
+              onClick={() => {
+                setActiveTab("dashboard");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="btn-primary"
+              style={{ padding: "1rem 2.5rem", fontSize: "1.05rem", borderRadius: "12px" }}
+            >
+              📊 Generate Dashboard & Sensitivity Analysis (Proceed to Step 3)
+            </button>
+          </div>
         </div>
       )}
 

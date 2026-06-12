@@ -64,11 +64,25 @@ export default function ScoringMatrix({
 
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: "1.5rem" }}>
-      <h3 className="panel-title" style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>
-        Scoring Matrix (0–5 Scale)
-      </h3>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+        <h3 className="panel-title" style={{ fontSize: "1.25rem" }}>
+          Scoring Matrix (0–5 Scale)
+        </h3>
+        <div className="tooltip-container">
+          <span style={{ cursor: "help", fontSize: "1rem", opacity: 0.7 }}>❓</span>
+          <span className="tooltip-text">
+            <strong>How to use the Scoring Matrix:</strong>
+            <br />
+            1. Rate each candidate option against each weighted criterion on a scale from 0 (poor) to 5 (excellent).
+            <br />
+            2. The system computes the weighted scores instantly: <em>(Raw Score / 5) × (Weight / 100)</em>.
+            <br />
+            3. The <strong>Total Score</strong> (0 to 1.0) is the sum of these weighted scores.
+          </span>
+        </div>
+      </div>
       <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        Enter raw scores from 0 (Poor) to 5 (Excellent). You can also edit candidate names/descriptions and criteria weights inline.
+        Enter raw scores from 0 (Poor) to 5 (Excellent). You can edit candidate and criteria names inline.
       </p>
 
       <div className="table-wrapper">
@@ -91,22 +105,9 @@ export default function ScoringMatrix({
                       style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center" }}
                     />
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.15rem" }}>
-                      <input
-                        type="number"
-                        value={tc.weight}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          const newCriteria = [...tradeCriteria];
-                          newCriteria[tcIdx] = { ...tc, weight: isNaN(val) ? 0 : val };
-                          onTradeCriteriaChange?.(newCriteria);
-                        }}
-                        className="editable-input"
-                        style={{ width: "45px", fontSize: "0.75rem", color: "var(--accent-blue)", textAlign: "center", padding: "0" }}
-                        min="0"
-                        max="100"
-                        step="0.5"
-                      />
-                      <small style={{ fontSize: "0.75rem", color: "var(--accent-blue)" }}>%</small>
+                      <small style={{ fontSize: "0.75rem", color: "var(--accent-blue)" }}>
+                        {tc.id} ({tc.weight.toFixed(2)}%)
+                      </small>
                     </div>
                   </div>
                 </th>
@@ -134,20 +135,13 @@ export default function ScoringMatrix({
                         className="editable-input"
                         style={{ fontWeight: 600, fontSize: "0.95rem" }}
                       />
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", paddingLeft: "0.4rem" }}>
                         <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>{cand.id}</small>
-                        <input
-                          type="text"
-                          value={cand.desc}
-                          onChange={(e) => {
-                            const newCands = [...candidates];
-                            newCands[candIdx] = { ...cand, desc: e.target.value };
-                            onCandidatesChange?.(newCands);
-                          }}
-                          placeholder="Description"
-                          className="editable-input"
-                          style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
-                        />
+                        {cand.desc && (
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                            — {cand.desc}
+                          </span>
+                        )}
                       </div>
                       {isExcluded && (
                         <span style={{ color: "var(--accent-red)", fontWeight: "bold", fontSize: "0.75rem", paddingLeft: "0.4rem" }}>

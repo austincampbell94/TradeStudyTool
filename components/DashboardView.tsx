@@ -359,7 +359,7 @@ export default function DashboardView({
           className="weight-sum-banner valid"
           style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between" }}
         >
-          <span>⚖️ Total Criteria Weight:</span>
+          <span>⚖️ Total Weighted Criteria Weight:</span>
           <strong>100.0%</strong>
         </div>
       </div>

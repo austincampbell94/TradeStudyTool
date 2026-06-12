@@ -83,11 +83,17 @@ body {
 
 /* Header */
 .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(7, 9, 14, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1.5rem;
+    padding: 1.25rem 0;
 }
 
 .logo-section {
@@ -507,4 +513,45 @@ body {
 /* Specific overrides for inputs in table headers */
 th .editable-input {
     text-align: center;
+}
+
+/* Tooltips */
+.tooltip-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 280px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    text-align: left;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    position: absolute;
+    z-index: 110;
+    bottom: 130%; /* Position above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    box-shadow: var(--shadow-main);
+    pointer-events: none;
+    font-weight: normal;
+}
+
+.tooltip-text strong {
+    color: var(--text-primary);
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
 }

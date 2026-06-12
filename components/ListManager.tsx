@@ -150,6 +150,31 @@ export default function ListManager<T extends { id: string; name: string; desc: 
         })}
       </div>
       
+      {type === "tradeCriteria" && (
+        <div 
+          className={`weight-sum-banner ${Math.abs(items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0) - 100) < 0.05 ? "valid" : "invalid"}`}
+          style={{ 
+            marginBottom: "1.5rem", 
+            display: "flex", 
+            justifyContent: "space-between",
+            background: Math.abs(items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0) - 100) < 0.05 ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+            borderColor: Math.abs(items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0) - 100) < 0.05 ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)",
+            color: Math.abs(items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0) - 100) < 0.05 ? "var(--accent-green)" : "var(--accent-red)",
+            padding: "0.75rem 1rem",
+            borderRadius: "8px",
+            border: "1px solid",
+            fontSize: "0.9rem",
+            fontWeight: "bold"
+          }}
+        >
+          <span>⚖️ Total Criteria Weight:</span>
+          <span>
+            {items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0).toFixed(2)}%
+            {Math.abs(items.reduce((sum, item) => sum + ((item as unknown as TradeCriterion).weight || 0), 0) - 100) >= 0.05 && " ⚠️ (Must sum to exactly 100%)"}
+          </span>
+        </div>
+      )}
+      
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--text-muted)" }}>
         <span>Min: {MIN} / Max: {MAX}</span>
         <span>Current items: {items.length}</span>
