@@ -659,6 +659,16 @@ export default function Home() {
 
   // Export CSV
   const handleExportCsv = () => {
+    const getScoringTotal = (candId: string) => {
+      let total = 0;
+      const candScores = scores[candId] || {};
+      tradeCriteria.forEach((tc) => {
+        const score = candScores[tc.id] !== undefined ? candScores[tc.id] : 3.0;
+        total += (score / 5) * (tc.weight / 100);
+      });
+      return total;
+    };
+
     const rows = [
       ["Metadata - Project", meta.project],
       ["Metadata - Sponsor", meta.sponsor],
@@ -686,6 +696,48 @@ export default function Home() {
       });
     });
 
+    // Append Rankings
+    rows.push([]);
+    rows.push(["Study Results & Rankings"]);
+    rows.push(["Rank", "Candidate ID", "Candidate Name", "Total Score (0-1)", "Percentage", "Status"]);
+
+    const passedCandidates = candidates.filter((c) => getOverallScreening(c.id) === "Pass");
+    const failedCandidates = candidates.filter((c) => getOverallScreening(c.id) === "Fail");
+
+    const scoredPassed = passedCandidates
+      .map((c) => ({
+        ...c,
+        score: getScoringTotal(c.id),
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    scoredPassed.forEach((cand, index) => {
+      rows.push([
+        (index + 1).toString(),
+        cand.id,
+        cand.name,
+        cand.score.toFixed(2),
+        `${(cand.score * 100).toFixed(1)}%`,
+        "PASSED"
+      ]);
+    });
+
+    failedCandidates.forEach((cand) => {
+      const score = getScoringTotal(cand.id);
+      rows.push([
+        "N/A",
+        cand.id,
+        cand.name,
+        score.toFixed(2),
+        `${(score * 100).toFixed(1)}%`,
+        "EXCLUDED (Failed Screening)"
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(["Recommendation & Decision Summary"]);
+    rows.push([recommendation || "No recommendation documented."]);
+
     const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
     const a = document.createElement("a");
@@ -708,6 +760,17 @@ export default function Home() {
       });
       return total;
     };
+
+    // Sort passed candidates for rankings
+    const passedCandidates = candidates.filter((c) => getOverallScreening(c.id) === "Pass");
+    const failedCandidates = candidates.filter((c) => getOverallScreening(c.id) === "Fail");
+
+    const scoredPassed = passedCandidates
+      .map((c) => ({
+        ...c,
+        score: getScoringTotal(c.id),
+      }))
+      .sort((a, b) => b.score - a.score);
 
     const md = `---
 title: "Trade Study — ${meta.project}"
@@ -769,7 +832,23 @@ ${candidates
   })
   .join("\n")}
 
-## Recommendation & Decision
+## Study Results & Rankings
+
+### Candidate Rankings
+| Rank | Candidate | ID | Total Score | Percentage |
+|:---:|---|:---:|:---:|:---:|
+${scoredPassed.length > 0
+  ? scoredPassed.map((cand, index) => `| ${index + 1} | ${cand.name} | ${cand.id} | **${cand.score.toFixed(2)}** | ${(cand.score * 100).toFixed(1)}% |`).join("\n")
+  : "| N/A | *No candidates passed mandatory screening* | | | |"
+}
+
+${failedCandidates.length > 0 
+  ? `\n### Excluded Candidates (Failed Screening)
+${failedCandidates.map((c) => `- **${c.name}** (${c.id}) — Excluded due to failing required screening criteria.`).join("\n")}`
+  : ""
+}
+
+## Recommendation & Decision Summary
 ${recommendation || "No recommendation documented."}
 `;
 
