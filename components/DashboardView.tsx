@@ -94,7 +94,8 @@ export default function DashboardView({
 
   const handleGeneratePPT = async () => {
     try {
-      const pptxgen = (await import("pptxgenjs")).default;
+      const pptxgenModule = await import("pptxgenjs");
+      const pptxgen = pptxgenModule.default || pptxgenModule;
       const pptx = new pptxgen();
       
       const prjTitle = meta?.project || "Trade Study Evaluation";
@@ -481,9 +482,11 @@ export default function DashboardView({
       
       // Save presentation
       const safeProjectName = prjTitle.toLowerCase().replace(/\s+/g, "-");
-      pptx.writeFile({ fileName: `${safeProjectName}-briefing.pptx` });
-    } catch (err) {
+      await pptx.writeFile({ fileName: `${safeProjectName}-briefing.pptx` });
+      alert("PowerPoint presentation generated and downloaded successfully!");
+    } catch (err: any) {
       console.error("Failed to generate PowerPoint briefing", err);
+      alert("Failed to generate PowerPoint: " + err.message);
     }
   };
 
@@ -535,16 +538,9 @@ export default function DashboardView({
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", flex: 1 }}>
                         <span style={{ fontWeight: "700", marginRight: "0.25rem" }}>#{index + 1}</span>
-                        <input
-                          type="text"
-                          value={cand.name}
-                          onChange={(e) => {
-                            const newCands = candidates.map(c => c.id === cand.id ? { ...c, name: e.target.value } : c);
-                            onCandidatesChange?.(newCands);
-                          }}
-                          className="editable-input"
-                          style={{ fontWeight: "600", padding: "0.1rem 0.25rem" }}
-                        />
+                        <div style={{ fontWeight: "600", padding: "0.1rem 0.25rem", color: "var(--text-primary)" }}>
+                          {cand.name}
+                        </div>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, paddingLeft: "1rem" }}>
@@ -565,17 +561,9 @@ export default function DashboardView({
                         }}
                       />
                     </div>
-                    <input
-                      type="text"
-                      value={cand.desc}
-                      onChange={(e) => {
-                        const newCands = candidates.map(c => c.id === cand.id ? { ...c, desc: e.target.value } : c);
-                        onCandidatesChange?.(newCands);
-                      }}
-                      placeholder="Description"
-                      className="editable-input"
-                      style={{ fontSize: "0.85rem", color: "var(--text-muted)", padding: "0.1rem 0.25rem" }}
-                    />
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", padding: "0.1rem 0.25rem" }}>
+                      {cand.desc || <span style={{ fontStyle: "italic", opacity: 0.6 }}>No description</span>}
+                    </div>
                   </div>
                 );
               })
@@ -608,16 +596,9 @@ export default function DashboardView({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
-                    <input
-                      type="text"
-                      value={cand.name}
-                      onChange={(e) => {
-                        const newCands = candidates.map(c => c.id === cand.id ? { ...c, name: e.target.value } : c);
-                        onCandidatesChange?.(newCands);
-                      }}
-                      className="editable-input"
-                      style={{ fontWeight: 600, color: "var(--text-secondary)" }}
-                    />
+                    <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>
+                      {cand.name}
+                    </span>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>({cand.id})</span>
                   </div>
                   <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)", flexShrink: 0, paddingLeft: "1rem" }}>
@@ -635,17 +616,15 @@ export default function DashboardView({
             Recommendation & Decision Summary
           </h3>
           <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.25rem" }}>
-            Review the generated decision description. You can customize the details here.
+            Review the generated decision description. This summary is read-only.
           </p>
 
           <textarea
             className="form-input"
             rows={6}
-            style={{ width: "100%", fontFamily: "inherit", resize: "vertical" }}
+            style={{ width: "100%", fontFamily: "inherit", resize: "vertical", background: "rgba(255, 255, 255, 0.02)", color: "var(--text-secondary)", cursor: "not-allowed" }}
             value={recommendation}
-            onChange={(e) => {
-              onRecommendationChange(e.target.value);
-            }}
+            readOnly={true}
             placeholder="Document recommendations, trade study caveats, and next steps..."
           />
         </div>
