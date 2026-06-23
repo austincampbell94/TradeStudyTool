@@ -78,30 +78,12 @@ export default function ScreeningGrid({
               {screening.map((sc, scIdx) => (
                 <th key={sc.id} style={{ minWidth: "145px" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                    <input
-                      type="text"
-                      value={sc.name}
-                      onChange={(e) => {
-                        const newScreening = [...screening];
-                        newScreening[scIdx] = { ...sc, name: e.target.value };
-                        onScreeningChange?.(newScreening);
-                      }}
-                      className="editable-input"
-                      style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center" }}
-                    />
-                    <select
-                      value={sc.required}
-                      onChange={(e) => {
-                        const newScreening = [...screening];
-                        newScreening[scIdx] = { ...sc, required: e.target.value as "Y" | "N" };
-                        onScreeningChange?.(newScreening);
-                      }}
-                      className="editable-input"
-                      style={{ fontSize: "0.75rem", color: sc.required === "Y" ? "var(--accent-purple)" : "var(--text-muted)", textAlign: "center", padding: "0" }}
-                    >
-                      <option value="Y" style={{ background: "var(--bg-primary)" }}>Required (Y)</option>
-                      <option value="N" style={{ background: "var(--bg-primary)" }}>Optional (N)</option>
-                    </select>
+                    <div style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center", color: "var(--text-primary)" }}>
+                      {sc.name}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: sc.required === "Y" ? "var(--accent-purple)" : "var(--text-muted)", textAlign: "center", fontWeight: "bold" }}>
+                      {sc.required === "Y" ? "Required (Y)" : "Optional (N)"}
+                    </div>
                   </div>
                 </th>
               ))}

@@ -149,7 +149,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                         onChange(index, "weight", isNaN(val) ? 0 : Math.max(0, val));
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === "-") {
+                        if (["e", "E", "+", "-"].includes(e.key)) {
                           e.preventDefault();
                         }
                       }}

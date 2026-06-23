@@ -93,17 +93,9 @@ export default function ScoringMatrix({
               {tradeCriteria.map((tc, tcIdx) => (
                 <th key={tc.id} style={{ minWidth: "120px" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                    <input
-                      type="text"
-                      value={tc.name}
-                      onChange={(e) => {
-                        const newCriteria = [...tradeCriteria];
-                        newCriteria[tcIdx] = { ...tc, name: e.target.value };
-                        onTradeCriteriaChange?.(newCriteria);
-                      }}
-                      className="editable-input"
-                      style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center" }}
-                    />
+                    <div style={{ fontWeight: 600, fontSize: "0.9rem", textAlign: "center", color: "var(--text-primary)", padding: "0.25rem 0" }}>
+                      {tc.name}
+                    </div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.15rem" }}>
                       <small style={{ fontSize: "0.75rem", color: "var(--accent-blue)" }}>
                         {tc.id} ({tc.weight.toFixed(2)}%)
@@ -124,17 +116,9 @@ export default function ScoringMatrix({
                 <tr key={cand.id} style={{ opacity: isExcluded ? 0.65 : 1 }}>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <input
-                        type="text"
-                        value={cand.name}
-                        onChange={(e) => {
-                          const newCands = [...candidates];
-                          newCands[candIdx] = { ...cand, name: e.target.value };
-                          onCandidatesChange?.(newCands);
-                        }}
-                        className="editable-input"
-                        style={{ fontWeight: 600, fontSize: "0.95rem" }}
-                      />
+                      <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "var(--text-primary)", paddingLeft: "0.4rem" }}>
+                        {cand.name}
+                      </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", paddingLeft: "0.4rem" }}>
                         <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>{cand.id}</small>
                         {cand.desc && (
@@ -161,19 +145,24 @@ export default function ScoringMatrix({
                     return (
                       <td key={tc.id}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                          <input
-                            type="number"
-                            min="0"
-                            max="5"
-                            step="0.1"
-                            value={currentScore}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value);
-                              handleScoreChange(cand.id, tc.id, isNaN(val) ? 0 : val);
-                            }}
-                            className="form-input"
-                            style={{ width: "70px", padding: "0.4rem 0.5rem", textAlign: "center" }}
-                          />
+                           <input
+                             type="number"
+                             min="0"
+                             max="5"
+                             step="0.1"
+                             value={currentScore}
+                             onChange={(e) => {
+                               const val = parseFloat(e.target.value);
+                               handleScoreChange(cand.id, tc.id, isNaN(val) ? 0 : val);
+                             }}
+                             onKeyDown={(e) => {
+                               if (["e", "E", "+", "-"].includes(e.key)) {
+                                 e.preventDefault();
+                               }
+                             }}
+                             className="form-input"
+                             style={{ width: "70px", padding: "0.4rem 0.5rem", textAlign: "center" }}
+                           />
                           <small style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
                             w: {weightedVal.toFixed(2)}
                           </small>
