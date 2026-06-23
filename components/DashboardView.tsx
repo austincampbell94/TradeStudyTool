@@ -480,6 +480,222 @@ export default function DashboardView({
         valign: "top"
       });
       
+      // =========================================================================
+      // SLIDE 6: Technical Appendix - Criteria Reference (New Slide)
+      // =========================================================================
+      const slide6 = pptx.addSlide();
+      slide6.background = { fill: bgColor };
+      
+      slide6.addText("Technical Appendix: Evaluation Criteria", {
+        x: 0.8,
+        y: 0.5,
+        w: 8.4,
+        h: 0.6,
+        fontSize: 24,
+        bold: true,
+        color: textColor,
+        fontFace: "Arial"
+      });
+      
+      slide6.addShape("rect", {
+        x: 0.8,
+        y: 1.1,
+        w: 8.4,
+        h: 0.02,
+        fill: { color: accentColor }
+      });
+      
+      // Screening Criteria Header
+      slide6.addText("Screening Criteria (Pass/Fail Baseline)", {
+        x: 0.8,
+        y: 1.3,
+        w: 4.0,
+        h: 0.4,
+        fontSize: 14,
+        bold: true,
+        color: accentColor,
+        fontFace: "Arial"
+      });
+      
+      let screeningText = "";
+      screening.forEach((sc, idx) => {
+        screeningText += `${idx + 1}. ${sc.name} [${sc.required === "Y" ? "Required" : "Optional"}]\n`;
+        if (sc.desc) screeningText += `   Description: ${sc.desc}\n`;
+        screeningText += `\n`;
+      });
+      
+      slide6.addText(screeningText, {
+        x: 0.8,
+        y: 1.7,
+        w: 4.0,
+        h: 3.4,
+        fontSize: 10,
+        color: textColor,
+        fontFace: "Arial",
+        valign: "top"
+      });
+      
+      // Weighted Criteria Header
+      slide6.addText("Weighted Criteria & Weights", {
+        x: 5.2,
+        y: 1.3,
+        w: 4.0,
+        h: 0.4,
+        fontSize: 14,
+        bold: true,
+        color: accentColor,
+        fontFace: "Arial"
+      });
+      
+      let tradeText = "";
+      tradeCriteria.forEach((tc, idx) => {
+        tradeText += `${idx + 1}. ${tc.name} (${tc.weight}%)\n`;
+        if (tc.desc) tradeText += `   Description: ${tc.desc}\n`;
+        tradeText += `\n`;
+      });
+      
+      slide6.addText(tradeText, {
+        x: 5.2,
+        y: 1.7,
+        w: 4.0,
+        h: 3.4,
+        fontSize: 10,
+        color: textColor,
+        fontFace: "Arial",
+        valign: "top"
+      });
+
+      // =========================================================================
+      // SLIDE 7: Technical Appendix - Evaluation Matrices (New Slide)
+      // =========================================================================
+      const slide7 = pptx.addSlide();
+      slide7.background = { fill: bgColor };
+      
+      slide7.addText("Technical Appendix: Raw Evaluation Matrices", {
+        x: 0.8,
+        y: 0.4,
+        w: 8.4,
+        h: 0.5,
+        fontSize: 22,
+        bold: true,
+        color: textColor,
+        fontFace: "Arial"
+      });
+      
+      slide7.addShape("rect", {
+        x: 0.8,
+        y: 0.9,
+        w: 8.4,
+        h: 0.02,
+        fill: { color: accentColor }
+      });
+      
+      // Screening Matrix Section
+      slide7.addText("Screening Matrix (Raw Pass/Fail Data)", {
+        x: 0.8,
+        y: 1.0,
+        w: 8.4,
+        h: 0.3,
+        fontSize: 12,
+        bold: true,
+        color: accentColor,
+        fontFace: "Arial"
+      });
+      
+      // Construct Screening Matrix Table
+      const scHeaders: any[] = [
+        { text: "Candidate", options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" } } }
+      ];
+      screening.forEach(sc => {
+        scHeaders.push({ text: sc.id, options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" }, align: "center" as const } });
+      });
+      scHeaders.push({ text: "Result", options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" }, align: "center" as const } });
+      
+      const scMatrixRows: any[][] = [scHeaders];
+      candidates.forEach(cand => {
+        const row: any[] = [{ text: cand.name, options: { color: "FFFFFF" } }];
+        const candScores = screeningScores[cand.id] || {};
+        screening.forEach(sc => {
+          const val = candScores[sc.id] || "Pass";
+          row.push({ text: val, options: { color: val === "Pass" ? greenColor : redColor, align: "center" as const, bold: true } });
+        });
+        const isEligible = getOverallScreeningStatus(cand.id) === "Pass";
+        row.push({ text: isEligible ? "Eligible" : "Excluded", options: { color: isEligible ? greenColor : redColor, align: "center" as const, bold: true } });
+        scMatrixRows.push(row);
+      });
+      
+      // Compute widths based on number of columns dynamically
+      const numScCols = screening.length + 2;
+      const scColWidths = [2.0];
+      const remainingScWidth = 6.4 / (numScCols - 1);
+      for (let i = 1; i < numScCols; i++) {
+        scColWidths.push(remainingScWidth);
+      }
+      
+      slide7.addTable(scMatrixRows, {
+        x: 0.8,
+        y: 1.3,
+        w: 8.4,
+        colW: scColWidths,
+        border: { type: "solid", color: "334155", pt: 1 },
+        fontSize: 8.5,
+        fontFace: "Arial"
+      });
+      
+      // Scoring Matrix Section
+      slide7.addText("Scoring Matrix (Raw 0-5 Ratings & Weighted Score)", {
+        x: 0.8,
+        y: 3.1,
+        w: 8.4,
+        h: 0.3,
+        fontSize: 12,
+        bold: true,
+        color: accentColor,
+        fontFace: "Arial"
+      });
+      
+      // Construct Scoring Matrix Table
+      const tcHeaders: any[] = [
+        { text: "Candidate", options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" } } }
+      ];
+      tradeCriteria.forEach(tc => {
+        tcHeaders.push({ text: `${tc.id}`, options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" }, align: "center" as const } });
+      });
+      tcHeaders.push({ text: "Total", options: { bold: true, color: "FFFFFF", fill: { color: "1E293B" }, align: "center" as const } });
+      
+      const tcMatrixRows: any[][] = [tcHeaders];
+      candidates.forEach(cand => {
+        const isExcluded = getOverallScreeningStatus(cand.id) === "Fail";
+        const row: any[] = [{ text: isExcluded ? `${cand.name} (Excl)` : cand.name, options: { color: isExcluded ? mutedTextColor : "FFFFFF", italic: isExcluded } }];
+        
+        const candScores = scores[cand.id] || {};
+        tradeCriteria.forEach(tc => {
+          const val = candScores[tc.id] !== undefined ? candScores[tc.id] : 3.0;
+          row.push({ text: val.toFixed(1), options: { color: isExcluded ? mutedTextColor : "FFFFFF", align: "center" as const } });
+        });
+        
+        const totalScore = calculateScore(cand.id, tradeCriteria);
+        row.push({ text: totalScore.toFixed(2), options: { color: isExcluded ? mutedTextColor : greenColor, align: "center" as const, bold: true } });
+        tcMatrixRows.push(row);
+      });
+      
+      const numTcCols = tradeCriteria.length + 2;
+      const tcColWidths = [2.0];
+      const remainingTcWidth = 6.4 / (numTcCols - 1);
+      for (let i = 1; i < numTcCols; i++) {
+        tcColWidths.push(remainingTcWidth);
+      }
+      
+      slide7.addTable(tcMatrixRows, {
+        x: 0.8,
+        y: 3.4,
+        w: 8.4,
+        colW: tcColWidths,
+        border: { type: "solid", color: "334155", pt: 1 },
+        fontSize: 8.5,
+        fontFace: "Arial"
+      });
+      
       // Save presentation
       const safeProjectName = prjTitle.toLowerCase().replace(/\s+/g, "-");
       await pptx.writeFile({ fileName: `${safeProjectName}-briefing.pptx` });
