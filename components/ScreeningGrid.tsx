@@ -67,7 +67,7 @@ export default function ScreeningGrid({
         </div>
       </div>
       <p className="panel-subtitle" style={{ fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        Filter candidates before scoring. You can also edit candidate names/descriptions and screening criteria inline.
+        Filter candidates before scoring. Candidate details are locked here, but you can edit screening criteria inline.
       </p>
 
       <div className="table-wrapper">
@@ -117,31 +117,14 @@ export default function ScreeningGrid({
                 <tr key={cand.id} style={{ opacity: isFailed ? 0.75 : 1 }}>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                      <input
-                        type="text"
-                        value={cand.name}
-                        onChange={(e) => {
-                          const newCands = [...candidates];
-                          newCands[candIdx] = { ...cand, name: e.target.value };
-                          onCandidatesChange?.(newCands);
-                        }}
-                        className="editable-input"
-                        style={{ fontWeight: 600, fontSize: "0.95rem" }}
-                      />
+                      <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "var(--text-primary)" }}>
+                        {cand.name}
+                      </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                         <small style={{ color: "var(--text-muted)", flexShrink: 0 }}>{cand.id}</small>
-                        <input
-                          type="text"
-                          value={cand.desc}
-                          onChange={(e) => {
-                            const newCands = [...candidates];
-                            newCands[candIdx] = { ...cand, desc: e.target.value };
-                            onCandidatesChange?.(newCands);
-                          }}
-                          placeholder="Description"
-                          className="editable-input"
-                          style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
-                        />
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                          {cand.desc || <span style={{ fontStyle: "italic", opacity: 0.6 }}>No description</span>}
+                        </span>
                       </div>
                     </div>
                   </td>

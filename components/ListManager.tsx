@@ -146,7 +146,12 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                       value={(item as unknown as TradeCriterion).weight || ""}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
-                        onChange(index, "weight", isNaN(val) ? 0 : val);
+                        onChange(index, "weight", isNaN(val) ? 0 : Math.max(0, val));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "-") {
+                          e.preventDefault();
+                        }
                       }}
                       className="form-input"
                       min="0"

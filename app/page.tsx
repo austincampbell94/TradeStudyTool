@@ -1458,6 +1458,7 @@ ${recommendation || "No recommendation documented."}
                   recommendation={recommendation}
                   onRecommendationChange={setRecommendation}
                   onCandidatesChange={setCandidates}
+                  meta={meta}
                 />
               </div>
             )}
