@@ -49,19 +49,20 @@ const DEMO_STUDY = {
     { id: "SC-6", name: "Support Contract Available", desc: "24/7 technical assistance agreement", required: "Y" as const },
   ],
   tradeCriteria: [
-    { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 20 },
-    { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 15 },
-    { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 15 },
+    { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 15 },
+    { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 10 },
+    { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 10 },
     { id: "TC-4", name: "Cyber Compliance", desc: "Information assurance security standards", weight: 25 },
     { id: "TC-5", name: "Scalability", desc: "Multi-region scale capacity", weight: 15 },
-    { id: "TC-6", name: "Supportability / Risk", desc: "Technical complexity risk reduction", weight: 10 },
+    { id: "TC-6", name: "Supportability / Risk", desc: "Technical complexity risk reduction", weight: 15 },
+    { id: "TC-7", name: "Usability / UX", desc: "Ease of operator use and interface clarity", weight: 10 },
   ],
   scores: {
-    "C-1": { "TC-1": 4.5, "TC-2": 2.5, "TC-3": 4.5, "TC-4": 4.0, "TC-5": 4.0, "TC-6": 4.5 },
-    "C-2": { "TC-1": 3.5, "TC-2": 4.5, "TC-3": 3.5, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.5 },
-    "C-3": { "TC-1": 3.0, "TC-2": 2.0, "TC-3": 2.0, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.0 },
-    "C-4": { "TC-1": 5.0, "TC-2": 3.5, "TC-3": 4.0, "TC-4": 5.0, "TC-5": 4.5, "TC-6": 4.0 },
-    "C-5": { "TC-1": 4.0, "TC-2": 5.0, "TC-3": 3.0, "TC-4": 3.0, "TC-5": 4.0, "TC-6": 2.0 },
+    "C-1": { "TC-1": 4.5, "TC-2": 2.5, "TC-3": 4.5, "TC-4": 4.0, "TC-5": 4.0, "TC-6": 4.5, "TC-7": 4.0 },
+    "C-2": { "TC-1": 3.5, "TC-2": 4.5, "TC-3": 3.5, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.5, "TC-7": 3.0 },
+    "C-3": { "TC-1": 3.0, "TC-2": 2.0, "TC-3": 2.0, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.0, "TC-7": 4.5 },
+    "C-4": { "TC-1": 5.0, "TC-2": 3.5, "TC-3": 4.0, "TC-4": 5.0, "TC-5": 4.5, "TC-6": 4.0, "TC-7": 5.0 },
+    "C-5": { "TC-1": 4.0, "TC-2": 5.0, "TC-3": 3.0, "TC-4": 3.0, "TC-5": 4.0, "TC-6": 2.0, "TC-7": 2.5 },
   },
   screeningScores: {
     "C-1": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
@@ -70,7 +71,7 @@ const DEMO_STUDY = {
     "C-4": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
     "C-5": { "SC-1": "Fail" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
   },
-  recommendation: "Based on the trade study criteria and weighting, Candidate **SaaS Partner Solution** is recommended with a total weighted score of **0.89** (89.0%).\n\nIt outperformed the runner-up, **Vendor A Relay** (score: 0.80), by a margin of 0.09.\n\nNote: Candidates In-house Dev and Open-source Platform were excluded from selection due to failing mandatory screening criteria."
+  recommendation: "Based on the trade study criteria and weighting, Candidate **SaaS Partner Solution** is recommended with a total weighted score of **0.91** (90.5%).\n\nIt outperformed the runner-up, **Vendor A Relay** (score: 0.81), by a margin of 0.10.\n\nNote: Candidates In-house Dev and Open-source Platform were excluded from selection due to failing mandatory screening criteria."
 };
 
 // Default empty state for the user's workspace
