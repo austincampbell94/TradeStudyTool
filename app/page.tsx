@@ -960,9 +960,24 @@ ${recommendation || "No recommendation documented."}
           title="I'm gunna wreck it!"
         >
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 3V21M12 21H9M12 21H15M12 6L4 9M12 6L20 9" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 9C4 13 6 15 6 15M6 15C6 15 8 13 8 9M6 15V19M6 19H5M6 19H7" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M20 9C20 13 22 15 22 15M22 15C22 15 24 13 24 9M22 15V19M22 19H21M22 19H23" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Base Pillar */}
+            <path d="M12 5V19" stroke="url(#logo-grad)" strokeWidth="2.5" strokeLinecap="round"/>
+            <path d="M8 19H16" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round"/>
+            
+            {/* Angled Beam representing dynamic trade-offs */}
+            <path d="M5 8L12 5L19 8" stroke="url(#logo-grad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            
+            {/* Left Pan */}
+            <path d="M5 8V12" stroke="url(#logo-grad)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M2 12H8C8 14.5 2 14.5 2 12Z" fill="url(#logo-grad)" fillOpacity="0.15" stroke="url(#logo-grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            
+            {/* Right Pan */}
+            <path d="M19 8V12" stroke="url(#logo-grad)" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M16 12H22C22 14.5 16 14.5 16 12Z" fill="url(#logo-grad)" fillOpacity="0.15" stroke="url(#logo-grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            
+            {/* Center Pivot Point */}
+            <circle cx="12" cy="5" r="1.5" fill="url(#logo-grad)"/>
+
             <defs>
               <linearGradient id="logo-grad" x1="4" y1="3" x2="24" y2="21" gradientUnits="userSpaceOnUse">
                 <stop stopColor="var(--accent-blue)" />
