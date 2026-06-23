@@ -37,28 +37,41 @@ const DEMO_STUDY = {
     { id: "C-1", name: "Vendor A Relay", desc: "Mature product, higher cost" },
     { id: "C-2", name: "Vendor B Relay", desc: "Lower cost, emerging product" },
     { id: "C-3", name: "In-house Dev", desc: "Custom build, longer lead time" },
+    { id: "C-4", name: "SaaS Partner Solution", desc: "Cloud-hosted subscription option" },
+    { id: "C-5", name: "Open-source Platform", desc: "Self-hosted, requiring high engineering overhead" },
   ],
   screening: [
-    { id: "SC-1", name: "Meets MIL-STD baseline", desc: "Basic environmental spec", required: "Y" as const },
+    { id: "SC-1", name: "Meets MIL-STD-188 baseline", desc: "Standard military communication specifications", required: "Y" as const },
     { id: "SC-2", name: "Bandwidth >= 10 Mbps", desc: "Throughput requirement", required: "Y" as const },
     { id: "SC-3", name: "Delivery within 12 months", desc: "Schedule constraint", required: "Y" as const },
+    { id: "SC-4", name: "NDAA Compliant", desc: "National Defense Authorization Act compliance", required: "Y" as const },
+    { id: "SC-5", name: "Redundant Power Supply", desc: "Dual-rail hardware requirement", required: "Y" as const },
+    { id: "SC-6", name: "Support Contract Available", desc: "24/7 technical assistance agreement", required: "Y" as const },
   ],
   tradeCriteria: [
-    { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 40 },
-    { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 30 },
-    { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 30 },
+    { id: "TC-1", name: "Performance", desc: "Throughput, latency, etc.", weight: 15 },
+    { id: "TC-2", name: "Cost", desc: "Lifecycle cost class", weight: 10 },
+    { id: "TC-3", name: "Schedule / Maturity", desc: "Time to field & system confidence", weight: 10 },
+    { id: "TC-4", name: "Cyber Compliance", desc: "Information assurance security standards", weight: 25 },
+    { id: "TC-5", name: "Scalability", desc: "Multi-region scale capacity", weight: 15 },
+    { id: "TC-6", name: "Supportability / Risk", desc: "Technical complexity risk reduction", weight: 15 },
+    { id: "TC-7", name: "Usability / UX", desc: "Ease of operator use and interface clarity", weight: 10 },
   ],
   scores: {
-    "C-1": { "TC-1": 4, "TC-2": 2, "TC-3": 4 },
-    "C-2": { "TC-1": 3, "TC-2": 4, "TC-3": 3 },
-    "C-3": { "TC-1": 2, "TC-2": 1, "TC-3": 1 },
+    "C-1": { "TC-1": 4.5, "TC-2": 2.5, "TC-3": 4.5, "TC-4": 4.0, "TC-5": 4.0, "TC-6": 4.5, "TC-7": 4.0 },
+    "C-2": { "TC-1": 3.5, "TC-2": 4.5, "TC-3": 3.5, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.5, "TC-7": 3.0 },
+    "C-3": { "TC-1": 3.0, "TC-2": 2.0, "TC-3": 2.0, "TC-4": 3.0, "TC-5": 3.5, "TC-6": 3.0, "TC-7": 4.5 },
+    "C-4": { "TC-1": 5.0, "TC-2": 3.5, "TC-3": 4.0, "TC-4": 5.0, "TC-5": 4.5, "TC-6": 4.0, "TC-7": 5.0 },
+    "C-5": { "TC-1": 4.0, "TC-2": 5.0, "TC-3": 3.0, "TC-4": 3.0, "TC-5": 4.0, "TC-6": 2.0, "TC-7": 2.5 },
   },
   screeningScores: {
-    "C-1": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const },
-    "C-2": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Fail" as const },
-    "C-3": { "SC-1": "Fail" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const },
+    "C-1": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
+    "C-2": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
+    "C-3": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Fail" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
+    "C-4": { "SC-1": "Pass" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
+    "C-5": { "SC-1": "Fail" as const, "SC-2": "Pass" as const, "SC-3": "Pass" as const, "SC-4": "Pass" as const, "SC-5": "Pass" as const, "SC-6": "Pass" as const },
   },
-  recommendation: "Based on the trade study criteria and weighting, Candidate **Vendor A Relay** is recommended with a total weighted score of **0.680** (68.0%).\n\nIt outperformed the runner-up, **Vendor B Relay** (score: 0.660), by a margin of 0.020.\n\nNote: Candidates In-house Dev was excluded from selection due to failing mandatory screening criteria."
+  recommendation: "Based on the trade study criteria and weighting, Candidate **SaaS Partner Solution** is recommended with a total weighted score of **0.91** (90.5%).\n\nIt outperformed the runner-up, **Vendor A Relay** (score: 0.81), by a margin of 0.10.\n\nNote: Candidates In-house Dev and Open-source Platform were excluded from selection due to failing mandatory screening criteria."
 };
 
 // Default empty state for the user's workspace
