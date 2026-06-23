@@ -120,7 +120,7 @@ export default function DashboardView({
       slide1.background = { fill: bgColor };
       
       // Top accent bar
-      slide1.addShape(pptxgen.shapes.RECTANGLE, {
+      slide1.addShape("rect", {
         x: 0,
         y: 0,
         w: 10,
@@ -187,7 +187,7 @@ export default function DashboardView({
       });
       
       // Line separator
-      slide2.addShape(pptxgen.shapes.RECTANGLE, {
+      slide2.addShape("rect", {
         x: 0.8,
         y: 1.1,
         w: 8.4,
@@ -290,7 +290,7 @@ export default function DashboardView({
         fontFace: "Arial"
       });
       
-      slide3.addShape(pptxgen.shapes.RECTANGLE, {
+      slide3.addShape("rect", {
         x: 0.8,
         y: 1.1,
         w: 8.4,
@@ -367,7 +367,7 @@ export default function DashboardView({
         fontFace: "Arial"
       });
       
-      slide4.addShape(pptxgen.shapes.RECTANGLE, {
+      slide4.addShape("rect", {
         x: 0.8,
         y: 1.1,
         w: 8.4,
@@ -448,7 +448,7 @@ export default function DashboardView({
         fontFace: "Arial"
       });
       
-      slide5.addShape(pptxgen.shapes.RECTANGLE, {
+      slide5.addShape("rect", {
         x: 0.8,
         y: 1.1,
         w: 8.4,
