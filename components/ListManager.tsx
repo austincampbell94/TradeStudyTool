@@ -141,21 +141,17 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                 {isTrade && (
                   <div style={{ flex: 1.5, display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder="Weight %"
-                      value={(item as unknown as TradeCriterion).weight || ""}
+                      value={(item as unknown as TradeCriterion).weight === 0 ? "" : (item as unknown as TradeCriterion).weight}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        onChange(index, "weight", isNaN(val) ? 0 : Math.max(0, val));
-                      }}
-                      onKeyDown={(e) => {
-                        if (["e", "E", "+", "-"].includes(e.key)) {
-                          e.preventDefault();
-                        }
+                        const cleanVal = e.target.value.replace(/[^0-9]/g, "");
+                        const val = parseInt(cleanVal, 10);
+                        onChange(index, "weight", isNaN(val) ? 0 : val);
                       }}
                       className="form-input"
-                      min="0"
-                      max="100"
                     />
                     <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>%</span>
                   </div>
