@@ -1253,7 +1253,7 @@ ${recommendation || "No recommendation documented."}
           
           <ListManager
             type="screening"
-            title="Screening Criteria (3 to 10)"
+            title="Screening Criteria (2 to ∞)"
             subtitle="Mandatory filters (Pass/Fail) applied to exclude unqualified options early."
             items={screening}
             onAdd={handleAddScreening}
@@ -1263,7 +1263,7 @@ ${recommendation || "No recommendation documented."}
 
           <ListManager
             type="candidates"
-            title="Candidates (3 to 10)"
+            title="Candidates (2 to ∞)"
             subtitle="The options, designs, systems, or providers being evaluated."
             items={candidates}
             onAdd={handleAddCandidate}
@@ -1273,7 +1273,7 @@ ${recommendation || "No recommendation documented."}
           
           <ListManager
             type="tradeCriteria"
-            title="Weighted Criteria (3 to 10)"
+            title="Weighted Criteria (2 to ∞)"
             subtitle="Scored criteria with weights summing to exactly 100%. Adjust weights here or on Step 3."
             items={tradeCriteria}
             onAdd={handleAddTradeCriterion}

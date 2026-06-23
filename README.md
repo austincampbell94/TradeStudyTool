@@ -6,7 +6,7 @@ A modern, responsive web application designed to help analysts, project managers
 
 ## 🌟 Core Features
 
-- **Setup Workspace (Step 1)**: Configure project metadata (Sponsor, Lead, Date, Version) and dynamically manage lists of Candidates, Screening Criteria, and Weighted Criteria (enforcing bounds of 3 to 10 items).
+- **Setup Workspace (Step 1)**: Configure project metadata (Sponsor, Lead, Date, Version) and dynamically manage lists of Candidates, Screening Criteria, and Weighted Criteria (enforcing bounds of 2 to ∞ items).
 - **Evaluation Matrices (Step 2)**:
   - **Screening Matrix**: Toggle Pass/Fail parameters. If a candidate fails any *required* screening criterion, they are instantly flagged as `EXCLUDED`.
   - **Scoring Matrix**: Evaluate candidates against weighted criteria on a 0–5 scale (with real-time computation of raw and weighted scores). Includes a hoverable guide/tooltip describing the scoring equations.
