@@ -22,8 +22,8 @@ export default function ListManager<T extends { id: string; name: string; desc: 
   onRemove,
   onChange,
 }: ListManagerProps<T>) {
-  const MIN = 3;
-  const MAX = 10;
+  const MIN = 2;
+  const MAX = Infinity;
 
   const getPlaceholders = (typeStr: "candidates" | "screening" | "tradeCriteria", idx: number) => {
     if (typeStr === "candidates") {
@@ -163,7 +163,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
                 onClick={() => onRemove(index)}
                 disabled={items.length <= MIN}
                 className={`btn-danger ${items.length <= MIN ? "btn-disabled" : ""}`}
-                title={items.length <= MIN ? "Minimum limit of 3 items reached" : "Remove item"}
+                title={items.length <= MIN ? `Minimum limit of ${MIN} items reached` : "Remove item"}
               >
                 🗑️
               </button>
@@ -198,7 +198,7 @@ export default function ListManager<T extends { id: string; name: string; desc: 
       )}
       
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-        <span>Min: {MIN} / Max: {MAX}</span>
+        <span>Min: {MIN} / Max: {MAX === Infinity ? "∞" : MAX}</span>
         <span>Current items: {items.length}</span>
       </div>
     </div>

@@ -159,11 +159,11 @@ export default function Home() {
   // Check if setup details are complete in Step 1
   const isSetupComplete = 
     meta.project.trim() !== "" &&
-    candidates.length >= 3 &&
+    candidates.length >= 2 &&
     candidates.every(c => c.name.trim() !== "") &&
-    screening.length >= 3 &&
+    screening.length >= 2 &&
     screening.every(s => s.name.trim() !== "") &&
-    tradeCriteria.length >= 3 &&
+    tradeCriteria.length >= 2 &&
     tradeCriteria.every(tc => tc.name.trim() !== "") &&
     isWeightValid;
 
@@ -172,20 +172,20 @@ export default function Home() {
     if (meta.project.trim() === "") {
       errors.push("Project Title is required.");
     }
-    if (candidates.length < 3) {
-      errors.push("At least 3 candidates are required.");
+    if (candidates.length < 2) {
+      errors.push("At least 2 candidates are required.");
     }
     if (candidates.some(c => c.name.trim() === "")) {
       errors.push("All candidates must have a name.");
     }
-    if (screening.length < 3) {
-      errors.push("At least 3 screening criteria are required.");
+    if (screening.length < 2) {
+      errors.push("At least 2 screening criteria are required.");
     }
     if (screening.some(s => s.name.trim() === "")) {
       errors.push("All screening criteria must have a name.");
     }
-    if (tradeCriteria.length < 3) {
-      errors.push("At least 3 weighted criteria are required.");
+    if (tradeCriteria.length < 2) {
+      errors.push("At least 2 weighted criteria are required.");
     }
     if (tradeCriteria.some(tc => tc.name.trim() === "")) {
       errors.push("All weighted criteria must have a name.");
@@ -310,11 +310,11 @@ export default function Home() {
             const loadedIsWeightValid = Math.abs(loadedWeightSum - 100) < 0.05;
             const loadedIsSetupComplete = 
               d.meta.project.trim() !== "" &&
-              d.candidates.length >= 3 &&
+              d.candidates.length >= 2 &&
               d.candidates.every((c: Candidate) => c.name.trim() !== "") &&
-              d.screening.length >= 3 &&
+              d.screening.length >= 2 &&
               d.screening.every((s: ScreeningCriterion) => s.name.trim() !== "") &&
-              d.tradeCriteria.length >= 3 &&
+              d.tradeCriteria.length >= 2 &&
               d.tradeCriteria.every((tc: TradeCriterion) => tc.name.trim() !== "") &&
               loadedIsWeightValid;
 
@@ -441,11 +441,11 @@ export default function Home() {
       const loadedIsWeightValid = Math.abs(loadedWeightSum - 100) < 0.05;
       const loadedIsSetupComplete = 
         d.meta.project && d.meta.project.trim() !== "" &&
-        d.candidates && d.candidates.length >= 3 &&
+        d.candidates && d.candidates.length >= 2 &&
         d.candidates.every((c: Candidate) => c.name.trim() !== "") &&
-        d.screening && d.screening.length >= 3 &&
+        d.screening && d.screening.length >= 2 &&
         d.screening.every((s: ScreeningCriterion) => s.name.trim() !== "") &&
-        d.tradeCriteria && d.tradeCriteria.length >= 3 &&
+        d.tradeCriteria && d.tradeCriteria.length >= 2 &&
         d.tradeCriteria.every((tc: TradeCriterion) => tc.name.trim() !== "") &&
         loadedIsWeightValid;
 
@@ -783,7 +783,7 @@ ${recommendation || "No recommendation documented."}
   };
 
   const handleRemoveCandidate = (index: number) => {
-    if (candidates.length <= 3) return;
+    if (candidates.length <= 2) return;
     const newCands = [...candidates];
     newCands.splice(index, 1);
 
@@ -845,7 +845,7 @@ ${recommendation || "No recommendation documented."}
   };
 
   const handleRemoveScreening = (index: number) => {
-    if (screening.length <= 3) return;
+    if (screening.length <= 2) return;
     const newScreening = [...screening];
     newScreening.splice(index, 1);
 
@@ -907,7 +907,7 @@ ${recommendation || "No recommendation documented."}
   };
 
   const handleRemoveTradeCriterion = (index: number) => {
-    if (tradeCriteria.length <= 3) return;
+    if (tradeCriteria.length <= 2) return;
     const newTradeCriteria = [...tradeCriteria];
     newTradeCriteria.splice(index, 1);
 
